@@ -1,0 +1,39 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/sportshop_graduation}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:123456}
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_DDL_AUTO:update}
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: ${SPRING_FLYWAY_ENABLED:false}
+    baseline-on-migrate: true
+  jackson:
+    default-property-inclusion: non_null
+
+server:
+  port: 8080
+
+app:
+  frontend-url: http://localhost:5173
+  jwt:
+    access-token-secret: ${JWT_ACCESS_SECRET:change_this_access_secret_key_please_make_it_long_enough_12345}
+    refresh-token-secret: ${JWT_REFRESH_SECRET:change_this_refresh_secret_key_please_make_it_long_enough_67890}
+    access-token-expiration-minutes: 60
+    refresh-token-expiration-days: 7
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+logging:
+  level:
+    org.springframework.security: INFO
+    com.sportshop: INFO
