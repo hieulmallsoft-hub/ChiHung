@@ -1,12 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { orderApi } from "../../api/orderApi";
+import { createChatStompClient } from "../../utils/chatSocket";
 
 export default function OrderDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
+  const stompRef = useRef(null);
 
   useEffect(() => {
     const load = async () => {
@@ -14,6 +16,32 @@ export default function OrderDetailPage() {
       setOrder(response.data.data);
     };
     load();
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    const client = createChatStompClient({
+      onConnect: () => {
+        client.subscribe("/user/queue/orders", (frame) => {
+          try {
+            const payload = JSON.parse(frame.body);
+            if (!payload?.orderId || payload.orderId !== id) return;
+            setOrder((prev) => (prev ? { ...prev, status: payload.status } : prev));
+          } catch {
+            // ignore malformed payload
+          }
+        });
+      },
+    });
+
+    client.activate();
+    stompRef.current = client;
+
+    return () => {
+      if (stompRef.current?.active) {
+        stompRef.current.deactivate();
+      }
+    };
   }, [id]);
 
   const cancelOrder = async () => {

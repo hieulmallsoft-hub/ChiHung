@@ -2,6 +2,7 @@ package com.sportshop.service.impl;
 
 import com.sportshop.dto.order.CheckoutRequest;
 import com.sportshop.dto.order.OrderResponse;
+import com.sportshop.dto.order.OrderStatusEvent;
 import com.sportshop.dto.order.PaymentUpdateRequest;
 import com.sportshop.dto.order.SpendingStatsResponse;
 import com.sportshop.dto.order.UpdateOrderStatusRequest;
@@ -18,6 +19,7 @@ import com.sportshop.util.CodeGenerator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +43,7 @@ public class OrderServiceImpl implements OrderService {
     private final CouponUsageRepository couponUsageRepository;
     private final OrderMapper orderMapper;
     private final CartServiceImpl cartService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     public OrderServiceImpl(UserRepository userRepository,
                             AddressRepository addressRepository,
@@ -53,7 +56,8 @@ public class OrderServiceImpl implements OrderService {
                             InventoryLogRepository inventoryLogRepository,
                             CouponUsageRepository couponUsageRepository,
                             OrderMapper orderMapper,
-                            CartServiceImpl cartService) {
+                            CartServiceImpl cartService,
+                            SimpMessagingTemplate messagingTemplate) {
         this.userRepository = userRepository;
         this.addressRepository = addressRepository;
         this.cartRepository = cartRepository;
@@ -66,6 +70,7 @@ public class OrderServiceImpl implements OrderService {
         this.couponUsageRepository = couponUsageRepository;
         this.orderMapper = orderMapper;
         this.cartService = cartService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @Override
@@ -197,6 +202,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         cancelOrder(order);
+        publishOrderStatus(order);
     }
 
     @Override
@@ -250,6 +256,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         orderRepository.save(order);
+        publishOrderStatus(order);
         return orderMapper.toResponse(order, orderItemRepository.findByOrder(order));
     }
 
@@ -335,6 +342,19 @@ public class OrderServiceImpl implements OrderService {
                 paymentRepository.save(payment);
             });
         }
+    }
+
+    private void publishOrderStatus(Order order) {
+        if (order == null || order.getUser() == null) {
+            return;
+        }
+        OrderStatusEvent event = OrderStatusEvent.builder()
+                .orderId(order.getId())
+                .orderCode(order.getOrderCode())
+                .status(order.getStatus())
+                .updatedAt(LocalDateTime.now())
+                .build();
+        messagingTemplate.convertAndSendToUser(order.getUser().getEmail(), "/queue/orders", event);
     }
 
     private User getUser(String email) {

@@ -7,6 +7,7 @@ const statuses = ["PENDING", "CONFIRMED", "PROCESSING", "SHIPPING", "DELIVERED",
 export default function OrderManagementPage() {
   const [orders, setOrders] = useState([]);
   const [statusFilter, setStatusFilter] = useState("");
+  const [updatingStatus, setUpdatingStatus] = useState({});
 
   const loadOrders = async () => {
     const response = await adminApi.getOrders({ page: 0, size: 20, status: statusFilter || undefined });
@@ -18,9 +19,38 @@ export default function OrderManagementPage() {
   }, []);
 
   const updateStatus = async (id, status) => {
-    await adminApi.updateOrderStatus(id, status);
-    toast.success("Da cap nhat trang thai");
-    loadOrders();
+    const currentStatus = orders.find((order) => order.id === id)?.status;
+    if (!currentStatus || currentStatus === status) return;
+    if (currentStatus === "CANCELLED" || currentStatus === "DELIVERED") {
+      toast.error("Don hang da hoan tat, khong the cap nhat");
+      return;
+    }
+    const previousStatus = orders.find((order) => order.id === id)?.status;
+    setUpdatingStatus((prev) => ({ ...prev, [id]: status }));
+    setOrders((prev) => prev.map((order) => (order.id === id ? { ...order, status } : order)));
+
+    try {
+      const response = await adminApi.updateOrderStatus(id, status);
+      const updated = response.data.data;
+      setOrders((prev) => prev.map((order) => (order.id === id ? { ...order, status: updated.status } : order)));
+      if (statusFilter && updated.status !== statusFilter) {
+        setOrders((prev) => prev.filter((order) => order.id !== id));
+      }
+      toast.success("Da cap nhat trang thai");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Khong the cap nhat trang thai");
+      if (previousStatus) {
+        setOrders((prev) => prev.map((order) => (order.id === id ? { ...order, status: previousStatus } : order)));
+      } else {
+        loadOrders();
+      }
+    } finally {
+      setUpdatingStatus((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+    }
   };
 
   return (
@@ -52,15 +82,33 @@ export default function OrderManagementPage() {
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <span className="admin-pill">Current: {order.status}</span>
-              {statuses.map((status) => (
-                <button
-                  key={status}
-                  className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold text-slate-200 hover:border-rose-400 hover:text-white"
-                  onClick={() => updateStatus(order.id, status)}
-                >
-                  {status}
-                </button>
-              ))}
+              {(order.status === "CANCELLED" || order.status === "DELIVERED") && (
+                <span className="rounded-full border border-emerald-300/40 bg-emerald-400/10 px-3 py-1 text-[11px] font-semibold text-emerald-100">
+                  Finalized
+                </span>
+              )}
+              {statuses.map((status) => {
+                const isActive = status === order.status;
+                const isUpdating = Boolean(updatingStatus[order.id]);
+                const isFinalized = order.status === "CANCELLED" || order.status === "DELIVERED";
+                return (
+                  <button
+                    key={status}
+                    aria-pressed={isActive}
+                    disabled={isUpdating || isFinalized}
+                    className={`rounded-full border px-3 py-1 text-[11px] font-semibold transition ${
+                      isActive
+                        ? "border-rose-300 bg-rose-400/20 text-rose-100 shadow-soft"
+                        : isFinalized
+                          ? "border-white/5 bg-white/5 text-slate-500 opacity-40"
+                          : "border-white/10 bg-white/5 text-slate-300 opacity-60 hover:opacity-100 hover:border-rose-400 hover:text-white"
+                    }`}
+                    onClick={() => updateStatus(order.id, status)}
+                  >
+                    {status}
+                  </button>
+                );
+              })}
             </div>
           </div>
         ))}
