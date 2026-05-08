@@ -77,12 +77,17 @@ export default function LoginPage() {
             Dang nhap
           </button>
         </form>
-        <p className="mt-4 text-sm text-slate-500">
-          Chua co tai khoan?{" "}
-          <Link to="/register" className="font-semibold text-primary-700 hover:text-primary-600">
-            Dang ky ngay
+        <div className="mt-4 flex flex-wrap justify-between gap-3 text-sm">
+          <Link to="/forgot-password" className="font-semibold text-primary-700 hover:text-primary-600">
+            Quen mat khau?
           </Link>
-        </p>
+          <p className="text-slate-500">
+            Chua co tai khoan?{" "}
+            <Link to="/register" className="font-semibold text-primary-700 hover:text-primary-600">
+              Dang ky ngay
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

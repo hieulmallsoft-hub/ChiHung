@@ -1,21 +1,21 @@
 export default function Footer() {
   return (
-    <footer className="mt-16 border-t border-rose-100/90 bg-white/75 backdrop-blur">
+    <footer className="mt-16 border-t border-white/10 bg-slate-950/80 backdrop-blur-xl">
       <div className="mx-auto max-w-7xl px-4 py-10 md:px-6">
-        <div className="grid gap-6 rounded-[1.8rem] border border-rose-100 bg-gradient-to-br from-white to-rose-50 p-6 shadow-soft md:grid-cols-3 md:p-8">
+        <div className="grid gap-6 rounded-[2rem] border border-white/10 bg-gradient-to-br from-slate-900/60 to-black/60 p-6 shadow-lg md:grid-cols-3 md:p-10 backdrop-blur-md">
           <div>
-            <p className="font-heading text-2xl font-extrabold text-primary-700">SportShop</p>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              Nen tang ban do the thao tich hop chat realtime, phu hop demo do an va mo rong production.
+            <p className="font-heading text-2xl font-black text-white tracking-tight">SportShop</p>
+            <p className="mt-3 text-sm leading-relaxed text-slate-400">
+              Nền tảng bán đồ thể thao cao cấp, mang lại trải nghiệm mua sắm tuyệt đỉnh cho các tín đồ đam mê chinh phục.
             </p>
-            <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-rose-500">Build for graduation 2026</p>
+            <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.25em] text-primary-400">Build for graduation 2026</p>
           </div>
 
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.14em] text-slate-700">Danh muc hot</p>
-            <div className="mt-3 flex flex-wrap gap-2 text-xs">
-              {["Pickleball", "Cau long", "Bong da", "Gym", "Chay bo", "Bong ro"].map((item) => (
-                <span key={item} className="label-chip">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-300">Danh mục nổi bật</p>
+            <div className="mt-4 flex flex-wrap gap-2.5 text-xs">
+              {["Pickleball", "Cầu lông", "Bóng đá", "Gym", "Chạy bộ", "Bóng rổ"].map((item) => (
+                <span key={item} className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] font-semibold text-slate-300 transition-colors hover:bg-white/15 hover:text-white">
                   {item}
                 </span>
               ))}
@@ -23,13 +23,13 @@ export default function Footer() {
           </div>
 
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.14em] text-slate-700">Lien he</p>
-            <div className="mt-3 space-y-1 text-sm text-slate-600">
-              <p>Email: support@sportshop.local</p>
-              <p>Hotline: 1900 8686</p>
-              <p>Address: District 1, Ho Chi Minh City</p>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-300">Liên hệ</p>
+            <div className="mt-4 space-y-2 text-sm text-slate-400 font-light">
+              <p className="hover:text-white transition-colors cursor-pointer">Email: support@sportshop.vn</p>
+              <p className="hover:text-white transition-colors cursor-pointer">Hotline: 1900 8686</p>
+              <p className="hover:text-white transition-colors cursor-pointer">Address: District 1, Ho Chi Minh City</p>
             </div>
-            <p className="mt-4 text-xs text-slate-500">© {new Date().getFullYear()} SportShop. All rights reserved.</p>
+            <p className="mt-6 text-[11px] text-slate-500 font-medium">© {new Date().getFullYear()} SportShop. All rights reserved.</p>
           </div>
         </div>
       </div>

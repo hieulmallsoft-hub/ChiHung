@@ -21,6 +21,7 @@ server:
 
 app:
   frontend-url: http://localhost:5173
+  upload-dir: uploads
   jwt:
     access-token-secret: ${JWT_ACCESS_SECRET:change_this_access_secret_key_please_make_it_long_enough_12345}
     refresh-token-secret: ${JWT_REFRESH_SECRET:change_this_refresh_secret_key_please_make_it_long_enough_67890}

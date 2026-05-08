@@ -4,6 +4,13 @@ import toast from "react-hot-toast";
 import { orderApi } from "../../api/orderApi";
 import { createChatStompClient } from "../../utils/chatSocket";
 
+const orderSteps = [
+  { id: "PENDING", label: "Cho xac nhan" },
+  { id: "CONFIRMED", label: "Da xac nhan" },
+  { id: "SHIPPING", label: "Dang giao" },
+  { id: "DELIVERED", label: "Da giao" },
+];
+
 export default function OrderDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -57,6 +64,12 @@ export default function OrderDetailPage() {
 
   if (!order) return null;
 
+  const currentStep = orderSteps.findIndex((step) => step.id === order.status);
+  const isCancelled = order.status === "CANCELLED";
+  const printInvoice = () => {
+    window.print();
+  };
+
   return (
     <div className="space-y-4">
       <section className="card p-5">
@@ -65,13 +78,42 @@ export default function OrderDetailPage() {
             <h1 className="font-heading text-2xl font-bold text-slate-900">Don hang {order.orderCode}</h1>
             <p className="text-sm text-slate-500">Trang thai: {order.status}</p>
           </div>
+          <div className="flex flex-wrap gap-2">
+            <button className="btn-secondary text-primary-700" onClick={printInvoice}>
+              In hoa don
+            </button>
           {(order.status === "PENDING" || order.status === "CONFIRMED") && (
             <button className="btn-secondary text-primary-700" onClick={cancelOrder}>
               Huy don hang
             </button>
           )}
+          </div>
         </div>
         <p className="mt-3 text-sm text-slate-600">Dia chi: {order.shippingAddress}</p>
+      </section>
+
+      <section className="card p-5">
+        <h2 className="mb-4 font-heading text-xl font-bold">Tien trinh don hang</h2>
+        {isCancelled ? (
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-700">
+            Don hang da bi huy. Neu ban can doi/tra hoac ho tro hoan tien, hay lien he chat voi admin.
+          </div>
+        ) : (
+          <div className="grid gap-3 md:grid-cols-4">
+            {orderSteps.map((step, index) => {
+              const done = index <= currentStep;
+              return (
+                <div key={step.id} className={`rounded-2xl border p-3 ${done ? "border-primary-200 bg-rose-50" : "border-slate-200 bg-white"}`}>
+                  <div className={`mb-2 flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${done ? "bg-primary-700 text-white" : "bg-slate-100 text-slate-400"}`}>
+                    {index + 1}
+                  </div>
+                  <p className="font-semibold text-slate-900">{step.label}</p>
+                  <p className="mt-1 text-xs text-slate-500">{done ? "Da cap nhat" : "Dang cho"}</p>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       <section className="card p-5">
@@ -91,6 +133,8 @@ export default function OrderDetailPage() {
 
       <section className="card p-5">
         <h2 className="mb-3 font-heading text-xl font-bold">Tong ket thanh toan</h2>
+        <p className="flex justify-between text-sm"><span>Phuong thuc</span><span>{order.paymentMethod}</span></p>
+        <p className="flex justify-between text-sm"><span>Trang thai thanh toan</span><span>{order.paymentStatus}</span></p>
         <p className="flex justify-between text-sm"><span>Tam tinh</span><span>{Number(order.subtotal).toLocaleString()} VND</span></p>
         <p className="flex justify-between text-sm"><span>Ship</span><span>{Number(order.shippingFee).toLocaleString()} VND</span></p>
         <p className="flex justify-between text-sm"><span>Giam gia</span><span>- {Number(order.discountAmount).toLocaleString()} VND</span></p>

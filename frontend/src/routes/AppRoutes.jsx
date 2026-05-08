@@ -13,6 +13,8 @@ import OrderHistoryPage from "../pages/user/OrderHistoryPage";
 import OrderDetailPage from "../pages/user/OrderDetailPage";
 import LoginPage from "../pages/user/LoginPage";
 import RegisterPage from "../pages/user/RegisterPage";
+import ForgotPasswordPage from "../pages/user/ForgotPasswordPage";
+import ResetPasswordPage from "../pages/user/ResetPasswordPage";
 import ProfilePage from "../pages/user/ProfilePage";
 import ChatSupportPage from "../pages/user/ChatSupportPage";
 
@@ -26,6 +28,7 @@ import InventoryManagementPage from "../pages/admin/InventoryManagementPage";
 import OrderManagementPage from "../pages/admin/OrderManagementPage";
 import RevenueReportPage from "../pages/admin/RevenueReportPage";
 import ChatManagementPage from "../pages/admin/ChatManagementPage";
+import CouponManagementPage from "../pages/admin/CouponManagementPage";
 
 import NotFoundPage from "../pages/user/NotFoundPage";
 
@@ -77,6 +80,22 @@ export default function AppRoutes() {
         element={
           <MainLayout>
             <RegisterPage />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          <MainLayout>
+            <ForgotPasswordPage />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/reset-password"
+        element={
+          <MainLayout>
+            <ResetPasswordPage />
           </MainLayout>
         }
       />
@@ -194,6 +213,14 @@ export default function AppRoutes() {
           element={
             <AdminLayout>
               <RevenueReportPage />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="/admin/coupons"
+          element={
+            <AdminLayout>
+              <CouponManagementPage />
             </AdminLayout>
           }
         />

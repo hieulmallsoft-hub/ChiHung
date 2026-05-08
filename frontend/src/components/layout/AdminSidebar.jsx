@@ -8,6 +8,7 @@ const menus = [
   { to: "/admin/products", label: "Products" },
   { to: "/admin/inventory", label: "Inventory" },
   { to: "/admin/orders", label: "Orders" },
+  { to: "/admin/coupons", label: "Coupons" },
   { to: "/admin/reports", label: "Revenue" },
   { to: "/admin/chats", label: "Chats" },
 ];

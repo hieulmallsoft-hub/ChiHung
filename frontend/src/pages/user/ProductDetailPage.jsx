@@ -24,6 +24,21 @@ export default function ProductDetailPage() {
   const [qty, setQty] = useState(1);
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: "" });
   const [activeImage, setActiveImage] = useState(null);
+  const [selectedSize, setSelectedSize] = useState("M");
+  const [wishlist, setWishlist] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("sportshop_wishlist") || "[]");
+    } catch {
+      return [];
+    }
+  });
+  const [compareList, setCompareList] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("sportshop_compare") || "[]");
+    } catch {
+      return [];
+    }
+  });
 
   const loadDetail = async () => {
     setLoading(true);
@@ -61,6 +76,18 @@ export default function ProductDetailPage() {
   const buyNow = async () => {
     await addToCart();
     navigate("/cart");
+  };
+
+  const toggleStoredProduct = (key, setter) => {
+    setter((current) => {
+      const exists = current.some((item) => item.id === product.id);
+      const next = exists
+        ? current.filter((item) => item.id !== product.id)
+        : [...current, { id: product.id, name: product.name, price, thumbnailUrl: product.thumbnailUrl }].slice(-4);
+      localStorage.setItem(key, JSON.stringify(next));
+      toast.success(exists ? "Da bo khoi danh sach" : "Da them vao danh sach");
+      return next;
+    });
   };
 
   const submitReview = async (event) => {
@@ -110,6 +137,8 @@ export default function ProductDetailPage() {
   const safeQty = Number.isNaN(qty) || qty < 1 ? 1 : qty;
   const maxQty = Math.max(1, product.stockQuantity || 1);
   const productImage = activeImage || mediaItems[0] || buildProductPlaceholder(product.name);
+  const isWishlisted = wishlist.some((item) => item.id === product.id);
+  const isCompared = compareList.some((item) => item.id === product.id);
 
   const adjustQty = (delta) => {
     setQty((current) => {
@@ -197,6 +226,26 @@ export default function ProductDetailPage() {
           </div>
 
           <div className="grid gap-4 rounded-2xl border border-rose-100 bg-white p-4">
+            <div>
+              <div className="mb-2 flex items-center justify-between text-sm">
+                <p className="font-semibold text-slate-800">Size</p>
+                <p className="text-xs text-slate-500">Co the doi size trong 7 ngay</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {["S", "M", "L", "XL", "Free size"].map((size) => (
+                  <button
+                    key={size}
+                    type="button"
+                    onClick={() => setSelectedSize(size)}
+                    className={`rounded-xl border px-3 py-2 text-sm font-semibold ${
+                      selectedSize === size ? "border-primary-500 bg-rose-50 text-primary-700" : "border-rose-100 bg-white text-slate-600"
+                    }`}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="flex items-center justify-between text-sm">
               <p className="font-semibold text-slate-800">So luong</p>
               <p className="text-xs text-slate-500">Toi da {maxQty}</p>
@@ -225,12 +274,33 @@ export default function ProductDetailPage() {
                 Mua ngay
               </button>
             </div>
+            <div className="grid gap-2 md:grid-cols-2">
+              <button className="btn-secondary" onClick={() => toggleStoredProduct("sportshop_wishlist", setWishlist)}>
+                {isWishlisted ? "Bo wishlist" : "Them wishlist"}
+              </button>
+              <button className="btn-secondary" onClick={() => toggleStoredProduct("sportshop_compare", setCompareList)}>
+                {isCompared ? "Bo so sanh" : "Them so sanh"}
+              </button>
+            </div>
           </div>
 
           <div className="rounded-2xl border border-rose-100 bg-white p-4 text-sm leading-6 text-slate-600">
             <p className="font-semibold text-slate-800">Thong tin van chuyen</p>
             <p className="mt-2">Nhanh 2-3 ngay, ho tro doi tra neu san pham loi.</p>
           </div>
+          {compareList.length > 0 && (
+            <div className="rounded-2xl border border-rose-100 bg-white p-4 text-sm">
+              <p className="font-semibold text-slate-800">Dang so sanh</p>
+              <div className="mt-2 space-y-2">
+                {compareList.map((item) => (
+                  <div key={item.id} className="flex justify-between gap-3 text-xs text-slate-600">
+                    <span>{item.name}</span>
+                    <span>{Number(item.price || 0).toLocaleString()} VND</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -266,6 +336,12 @@ export default function ProductDetailPage() {
         </form>
 
           <div className="space-y-3">
+            {reviews.length > 0 && (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-slate-700">
+                <p className="font-semibold text-slate-900">Danh gia noi bat</p>
+                <p className="mt-1">{reviews[0].comment || "Khach hang hai long voi san pham."}</p>
+              </div>
+            )}
             {reviews.length === 0 && (
               <div className="rounded-2xl border border-dashed border-rose-200 bg-rose-50 p-4 text-sm text-slate-600">
                 Chua co danh gia nao. Hay la nguoi dau tien!

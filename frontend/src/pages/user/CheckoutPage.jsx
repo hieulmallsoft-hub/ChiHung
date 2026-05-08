@@ -23,12 +23,18 @@ export default function CheckoutPage() {
   const [addingAddress, setAddingAddress] = useState(false);
   const [addresses, setAddresses] = useState([]);
   const [addressForm, setAddressForm] = useState(initialAddressForm);
-  const [form, setForm] = useState({ addressId: "", paymentMethod: "COD", couponCode: "", note: "" });
+  const [form, setForm] = useState({ addressId: "", paymentMethod: "COD", couponCode: "", shippingMethod: "STANDARD", note: "" });
   const [suggestions, setSuggestions] = useState([]);
   const [loadingSuggest, setLoadingSuggest] = useState(false);
 
   const cartItems = cart?.items || [];
   const hasCartItems = cartItems.length > 0;
+  const shippingOptions = [
+    { id: "STANDARD", label: "Tieu chuan", description: "2-4 ngay lam viec", fee: Number(cart?.shippingFee || 0) },
+    { id: "EXPRESS", label: "Hoa toc", description: "Trong ngay tai noi thanh", fee: Number(cart?.shippingFee || 0) + 25000 },
+  ];
+  const selectedShipping = shippingOptions.find((item) => item.id === form.shippingMethod) || shippingOptions[0];
+  const payableTotal = Math.max(0, Number(cart?.total || 0) + selectedShipping.fee - Number(cart?.shippingFee || 0));
 
   const addressLabel = useMemo(
     () => addresses.find((item) => item.id === form.addressId),
@@ -133,7 +139,12 @@ export default function CheckoutPage() {
 
     try {
       setSubmitting(true);
-      const response = await orderApi.checkout(form);
+      const response = await orderApi.checkout({
+        addressId: form.addressId,
+        paymentMethod: form.paymentMethod,
+        couponCode: form.couponCode,
+        note: `[${selectedShipping.label}] ${form.note || ""}`.trim(),
+      });
       toast.success("Dat hang thanh cong");
       await refreshCart();
       navigate(`/orders/${response.data.data.id}`);
@@ -254,14 +265,60 @@ export default function CheckoutPage() {
 
         <div>
           <label className="mb-1 block text-sm font-semibold">Phuong thuc thanh toan</label>
-          <select
-            value={form.paymentMethod}
-            onChange={(event) => setForm((prev) => ({ ...prev, paymentMethod: event.target.value }))}
-          >
-            <option value="COD">COD</option>
-            <option value="BANK_TRANSFER">Chuyen khoan</option>
-            <option value="E_WALLET_MOCK">Vi dien tu (mock)</option>
-          </select>
+          <div className="grid gap-3 md:grid-cols-3">
+            {[
+              { id: "COD", title: "COD", desc: "Thanh toan khi nhan hang" },
+              { id: "BANK_TRANSFER", title: "Chuyen khoan", desc: "Xac nhan thu cong boi admin" },
+              { id: "E_WALLET_MOCK", title: "Vi dien tu", desc: "San sang gan VNPay/Momo khi co key" },
+            ].map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setForm((prev) => ({ ...prev, paymentMethod: item.id }))}
+                className={`rounded-2xl border p-3 text-left text-sm transition ${
+                  form.paymentMethod === item.id ? "border-primary-500 bg-rose-50 shadow-soft" : "border-rose-100 bg-white hover:border-primary-300"
+                }`}
+              >
+                <p className="font-semibold text-slate-900">{item.title}</p>
+                <p className="mt-1 text-xs text-slate-500">{item.desc}</p>
+              </button>
+            ))}
+          </div>
+          {form.paymentMethod === "E_WALLET_MOCK" && (
+            <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700">
+              Chua cau hinh merchant key, nen don se duoc ghi nhan o che do vi dien tu demo.
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm font-semibold">Phuong thuc giao hang</label>
+          <div className="grid gap-3 md:grid-cols-2">
+            {shippingOptions.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setForm((prev) => ({ ...prev, shippingMethod: item.id }))}
+                className={`rounded-2xl border p-3 text-left text-sm transition ${
+                  form.shippingMethod === item.id ? "border-primary-500 bg-rose-50 shadow-soft" : "border-rose-100 bg-white hover:border-primary-300"
+                }`}
+              >
+                <p className="font-semibold text-slate-900">{item.label}</p>
+                <p className="mt-1 text-xs text-slate-500">{item.description}</p>
+                <p className="mt-2 text-sm font-bold text-primary-700">{item.fee.toLocaleString()} VND</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm font-semibold">Ma giam gia</label>
+          <input
+            value={form.couponCode}
+            onChange={(event) => setForm((prev) => ({ ...prev, couponCode: event.target.value.toUpperCase() }))}
+            placeholder="Nhap ma neu chua ap dung trong gio hang"
+            className="w-full"
+          />
         </div>
 
         <div>
@@ -276,10 +333,18 @@ export default function CheckoutPage() {
 
       <aside className="card space-y-3 p-5">
         <h2 className="font-heading text-xl font-bold text-slate-900">Thong tin don hang</h2>
+        <div className="space-y-2">
+          {cartItems.map((item) => (
+            <div key={item.id} className="flex justify-between gap-3 text-xs text-slate-600">
+              <span>{item.productName} x{item.quantity}</span>
+              <span>{Number(item.lineTotal || 0).toLocaleString()} VND</span>
+            </div>
+          ))}
+        </div>
         <p className="flex justify-between text-sm"><span>Tam tinh</span><span>{Number(cart?.subtotal || 0).toLocaleString()} VND</span></p>
-        <p className="flex justify-between text-sm"><span>Phi ship</span><span>{Number(cart?.shippingFee || 0).toLocaleString()} VND</span></p>
+        <p className="flex justify-between text-sm"><span>Phi ship</span><span>{selectedShipping.fee.toLocaleString()} VND</span></p>
         <p className="flex justify-between text-sm"><span>Giam gia</span><span>- {Number(cart?.discount || 0).toLocaleString()} VND</span></p>
-        <p className="flex justify-between border-t border-rose-200 pt-2 text-lg font-bold text-primary-700"><span>Thanh toan</span><span>{Number(cart?.total || 0).toLocaleString()} VND</span></p>
+        <p className="flex justify-between border-t border-rose-200 pt-2 text-lg font-bold text-primary-700"><span>Thanh toan</span><span>{payableTotal.toLocaleString()} VND</span></p>
         <button className="btn-primary w-full" onClick={submitCheckout} disabled={submitting || loadingAddress}>
           {submitting ? "Dang xu ly..." : "Xac nhan dat hang"}
         </button>

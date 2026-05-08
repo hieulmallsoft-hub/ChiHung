@@ -1,6 +1,7 @@
 ﻿import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { adminApi } from "../../api/adminApi";
+import { resolveMediaUrl } from "../../utils/media";
 
 const defaultForm = {
   name: "",
@@ -22,6 +23,7 @@ export default function ProductManagementPage() {
   const [brands, setBrands] = useState([]);
   const [form, setForm] = useState(defaultForm);
   const [keyword, setKeyword] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   const load = async () => {
     const [productRes, categoryRes, brandRes] = await Promise.all([
@@ -64,6 +66,27 @@ export default function ProductManagementPage() {
     load();
   };
 
+  const uploadImage = async (event, target = "thumbnail") => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      setUploading(true);
+      const response = await adminApi.uploadMedia(file);
+      const url = response.data.data.url;
+      if (target === "thumbnail") {
+        setForm((prev) => ({ ...prev, thumbnailUrl: url }));
+      } else {
+        setForm((prev) => ({ ...prev, imageUrls: [...prev.imageUrls, url] }));
+      }
+      toast.success("Da upload anh");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Khong upload duoc anh");
+    } finally {
+      setUploading(false);
+      event.target.value = "";
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="admin-card">
@@ -88,10 +111,25 @@ export default function ProductManagementPage() {
           <input className="admin-input" type="number" placeholder="Gia khuyen mai" value={form.salePrice} onChange={(e) => setForm((p) => ({ ...p, salePrice: e.target.value }))} />
           <input className="admin-input" type="number" placeholder="Ton kho" value={form.stockQuantity} onChange={(e) => setForm((p) => ({ ...p, stockQuantity: e.target.value }))} />
           <input className="admin-input" placeholder="Thumbnail URL" value={form.thumbnailUrl} onChange={(e) => setForm((p) => ({ ...p, thumbnailUrl: e.target.value }))} />
+          <label className="admin-subtle cursor-pointer text-sm">
+            <span className="font-semibold text-white">{uploading ? "Dang upload..." : "Upload thumbnail"}</span>
+            <input className="hidden" type="file" accept="image/*" onChange={(event) => uploadImage(event, "thumbnail")} disabled={uploading} />
+          </label>
+          <label className="admin-subtle cursor-pointer text-sm">
+            <span className="font-semibold text-white">{uploading ? "Dang upload..." : "Upload anh phu"}</span>
+            <input className="hidden" type="file" accept="image/*" onChange={(event) => uploadImage(event, "gallery")} disabled={uploading} />
+          </label>
           <input className="admin-input md:col-span-2" placeholder="Mo ta ngan" value={form.shortDescription} onChange={(e) => setForm((p) => ({ ...p, shortDescription: e.target.value }))} />
           <textarea className="admin-input md:col-span-2" placeholder="Mo ta chi tiet" value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} rows={3} />
           <input className="admin-input" placeholder="Anh phu 1" onChange={(e) => setForm((p) => ({ ...p, imageUrls: [e.target.value, p.imageUrls[1], p.imageUrls[2]] }))} />
           <input className="admin-input" placeholder="Anh phu 2" onChange={(e) => setForm((p) => ({ ...p, imageUrls: [p.imageUrls[0], e.target.value, p.imageUrls[2]] }))} />
+          {(form.thumbnailUrl || form.imageUrls.filter(Boolean).length > 0) && (
+            <div className="md:col-span-2 flex flex-wrap gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+              {[form.thumbnailUrl, ...form.imageUrls].filter(Boolean).map((url) => (
+                <img key={url} src={resolveMediaUrl(url)} alt="Preview" className="h-20 w-24 rounded-xl object-cover" />
+              ))}
+            </div>
+          )}
           <button className="btn-primary md:col-span-2" type="submit">Luu san pham</button>
         </form>
       </div>

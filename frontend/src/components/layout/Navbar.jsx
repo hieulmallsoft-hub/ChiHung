@@ -22,38 +22,38 @@ export default function Navbar() {
 
   const navItemClass = ({ isActive }) =>
     `rounded-xl px-3 py-2 text-sm font-semibold transition ${
-      isActive ? "bg-primary-50 text-primary-700 shadow-sm" : "text-slate-700 hover:bg-rose-50 hover:text-primary-700"
+      isActive ? "bg-primary-600/20 text-primary-400 shadow-sm" : "text-slate-300 hover:bg-white/10 hover:text-white"
     }`;
 
   return (
-    <header className="sticky top-0 z-50 border-b border-rose-100/90 bg-white/90 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/60 backdrop-blur-xl">
       <div className="h-1 w-full bg-gradient-to-r from-primary-700 via-primary-500 to-rose-500" />
 
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-6">
         <Link to="/" className="flex items-center gap-3" onClick={() => setMobileOpen(false)}>
-          <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-primary-600 to-primary-800 text-sm font-bold text-white shadow-glow">
+          <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-primary-600 to-rose-700 text-sm font-bold text-white shadow-[0_0_15px_rgba(225,29,72,0.4)]">
             SS
           </div>
           <div>
-            <p className="font-heading text-xl font-extrabold leading-none text-primary-700">SportShop</p>
-            <p className="text-[11px] font-medium tracking-wide text-slate-500">Premium Sports Gear</p>
+            <p className="font-heading text-xl font-black leading-none text-white tracking-tight">SportShop</p>
+            <p className="text-[11px] font-medium tracking-widest text-primary-400 uppercase">Premium Gear</p>
           </div>
         </Link>
 
-        <nav className="hidden items-center gap-1 rounded-2xl border border-rose-100 bg-white/70 p-1 md:flex">
+        <nav className="hidden items-center gap-1 rounded-2xl border border-white/10 bg-white/5 p-1 md:flex">
           <NavLink to="/" className={navItemClass}>
-            Trang chu
+            Trang chủ
           </NavLink>
           <NavLink to="/products" className={navItemClass}>
-            San pham
+            Sản phẩm
           </NavLink>
           {isAuthenticated && !isAdmin && (
             <>
               <NavLink to="/orders" className={navItemClass}>
-                Don hang
+                Đơn hàng
               </NavLink>
               <NavLink to="/chat" className={navItemClass}>
-                Ho tro
+                Hỗ trợ
               </NavLink>
             </>
           )}
@@ -62,107 +62,107 @@ export default function Navbar() {
         <div className="hidden items-center gap-2 md:flex">
           {isAuthenticated && (
             <span
-              className={`rounded-full px-3 py-1 text-[11px] font-bold ${
-                isAdmin ? "bg-primary-700 text-white" : "bg-emerald-100 text-emerald-700"
+              className={`rounded-full px-3 py-1 text-[11px] font-bold tracking-wider ${
+                isAdmin ? "bg-primary-700/80 text-white shadow-[0_0_10px_rgba(225,29,72,0.5)]" : "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
               }`}
             >
               {isAdmin ? "ADMIN MODE" : "USER MODE"}
             </span>
           )}
 
-          <Link to="/cart" className="btn-secondary gap-2">
-            Gio hang <span className="badge">{cartCount}</span>
+          <Link to="/cart" className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20 gap-2">
+            Giỏ hàng <span className="inline-flex items-center rounded-full bg-primary-600 px-2 py-0.5 text-xs font-bold text-white">{cartCount}</span>
           </Link>
 
           {!isAuthenticated ? (
             <>
-              <Link to="/login" className="btn-secondary">
-                Dang nhap
+              <Link to="/login" className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10 hover:border-white/30">
+                Đăng nhập
               </Link>
-              <Link to="/register" className="btn-primary">
-                Dang ky
+              <Link to="/register" className="inline-flex items-center justify-center rounded-xl bg-gradient-to-br from-primary-600 to-rose-700 px-4 py-2 text-sm font-bold text-white shadow-[0_0_15px_rgba(225,29,72,0.4)] transition hover:scale-105">
+                Đăng ký
               </Link>
             </>
           ) : (
             <>
-              <Link to="/profile" className="btn-secondary">
+              <Link to="/profile" className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10 hover:border-white/30">
                 {profileLabel}
               </Link>
               {isAdmin && (
-                <Link to="/admin/dashboard" className="btn-secondary border-primary-300 bg-primary-50 text-primary-700">
+                <Link to="/admin/dashboard" className="inline-flex items-center justify-center rounded-xl border border-primary-500/30 bg-primary-600/20 px-4 py-2 text-sm font-semibold text-primary-300 transition hover:bg-primary-600/40">
                   Admin
                 </Link>
               )}
-              <button onClick={handleLogout} className="btn-primary">
-                Dang xuat
+              <button onClick={handleLogout} className="inline-flex items-center justify-center rounded-xl bg-gradient-to-br from-primary-600 to-rose-700 px-4 py-2 text-sm font-bold text-white shadow-[0_0_15px_rgba(225,29,72,0.4)] transition hover:scale-105">
+                Đăng xuất
               </button>
             </>
           )}
         </div>
 
         <button
-          className="btn-secondary px-3 py-2 md:hidden"
+          className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-sm font-semibold text-white md:hidden"
           onClick={() => setMobileOpen((prev) => !prev)}
           aria-label="Mo menu"
         >
-          {mobileOpen ? "Dong" : "Menu"}
+          {mobileOpen ? "Đóng" : "Menu"}
         </button>
       </div>
 
       {mobileOpen && (
-        <div className="border-t border-rose-100 bg-white px-4 pb-4 pt-3 md:hidden">
+        <div className="border-t border-white/10 bg-slate-900/95 px-4 pb-4 pt-3 md:hidden backdrop-blur-xl">
           <div className="grid gap-2">
             <NavLink to="/" className={navItemClass} onClick={() => setMobileOpen(false)}>
-              Trang chu
+              Trang chủ
             </NavLink>
             <NavLink to="/products" className={navItemClass} onClick={() => setMobileOpen(false)}>
-              San pham
+              Sản phẩm
             </NavLink>
             {isAuthenticated && !isAdmin && (
               <>
                 <NavLink to="/orders" className={navItemClass} onClick={() => setMobileOpen(false)}>
-                  Don hang
+                  Đơn hàng
                 </NavLink>
                 <NavLink to="/chat" className={navItemClass} onClick={() => setMobileOpen(false)}>
-                  Ho tro
+                  Hỗ trợ
                 </NavLink>
               </>
             )}
-            <Link to="/cart" className="btn-secondary mt-1" onClick={() => setMobileOpen(false)}>
-              Gio hang ({cartCount})
+            <Link to="/cart" className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20 mt-1" onClick={() => setMobileOpen(false)}>
+              Giỏ hàng ({cartCount})
             </Link>
 
             {isAuthenticated && (
               <span
-                className={`mt-1 rounded-xl px-3 py-2 text-center text-xs font-bold ${
-                  isAdmin ? "bg-primary-700 text-white" : "bg-emerald-100 text-emerald-700"
+                className={`mt-2 rounded-xl px-3 py-2 text-center text-xs font-bold tracking-wide ${
+                  isAdmin ? "bg-primary-700/80 text-white" : "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                 }`}
               >
-                {isAdmin ? "Ban dang o che do ADMIN" : "Ban dang o che do USER"}
+                {isAdmin ? "Bạn đang ở chế độ ADMIN" : "Bạn đang ở chế độ USER"}
               </span>
             )}
 
             {!isAuthenticated ? (
               <>
-                <Link to="/login" className="btn-secondary" onClick={() => setMobileOpen(false)}>
-                  Dang nhap
+                <Link to="/login" className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10 mt-2" onClick={() => setMobileOpen(false)}>
+                  Đăng nhập
                 </Link>
-                <Link to="/register" className="btn-primary" onClick={() => setMobileOpen(false)}>
-                  Dang ky
+                <Link to="/register" className="inline-flex items-center justify-center rounded-xl bg-gradient-to-br from-primary-600 to-rose-700 px-4 py-2 text-sm font-bold text-white mt-1" onClick={() => setMobileOpen(false)}>
+                  Đăng ký
                 </Link>
               </>
             ) : (
               <>
-                <Link to="/profile" className="btn-secondary" onClick={() => setMobileOpen(false)}>
+                <Link to="/profile" className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10 mt-2" onClick={() => setMobileOpen(false)}>
                   {profileLabel}
                 </Link>
                 {isAdmin && (
-                  <Link to="/admin/dashboard" className="btn-secondary" onClick={() => setMobileOpen(false)}>
+                  <Link to="/admin/dashboard" className="inline-flex items-center justify-center rounded-xl border border-primary-500/30 bg-primary-600/20 px-4 py-2 text-sm font-semibold text-primary-300 mt-1" onClick={() => setMobileOpen(false)}>
                     Admin
                   </Link>
                 )}
-                <button onClick={handleLogout} className="btn-primary">
-                  Dang xuat
+                <button onClick={handleLogout} className="inline-flex items-center justify-center rounded-xl bg-gradient-to-br from-primary-600 to-rose-700 px-4 py-2 text-sm font-bold text-white mt-1">
+                  Đăng xuất
                 </button>
               </>
             )}

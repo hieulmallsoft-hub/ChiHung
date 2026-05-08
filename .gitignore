@@ -9,6 +9,7 @@ Thumbs.db
 backend/target/
 backend/.idea/
 backend/*.iml
+backend/uploads/
 
 # Frontend
 frontend/node_modules/

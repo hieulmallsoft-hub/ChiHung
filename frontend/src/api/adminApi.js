@@ -70,6 +70,24 @@ export const adminApi = {
   getReport() {
     return axiosClient.get("/api/admin/reports/revenue");
   },
+  getCoupons() {
+    return axiosClient.get("/api/admin/coupons");
+  },
+  saveCoupon(payload, id) {
+    return id
+      ? axiosClient.put(`/api/admin/coupons/${id}`, payload)
+      : axiosClient.post("/api/admin/coupons", payload);
+  },
+  deleteCoupon(id) {
+    return axiosClient.delete(`/api/admin/coupons/${id}`);
+  },
+  uploadMedia(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+    return axiosClient.post("/api/admin/media", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
   getChatRooms(params) {
     return axiosClient.get("/api/admin/chats/rooms", { params });
   },

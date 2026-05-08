@@ -3,10 +3,12 @@ import toast from "react-hot-toast";
 import { cartApi } from "../../api/cartApi";
 import EmptyState from "../../components/common/EmptyState";
 import { useCart } from "../../hooks/useCart";
+import { useState } from "react";
 
 export default function CartPage() {
   const { cart, refreshCart } = useCart();
   const navigate = useNavigate();
+  const [couponCode, setCouponCode] = useState("");
 
   if (!cart?.items?.length) {
     return <EmptyState title="Gio hang trong" description="Hay them san pham de bat dau mua sam." />;
@@ -24,16 +26,24 @@ export default function CartPage() {
     refreshCart();
   };
 
-  const applyCoupon = async () => {
-    const code = window.prompt("Nhap ma coupon");
+  const applyCoupon = async (event) => {
+    event.preventDefault();
+    const code = couponCode.trim();
     if (!code) return;
     try {
       await cartApi.applyCoupon(code);
       toast.success("Da ap dung coupon");
+      setCouponCode("");
       refreshCart();
     } catch (error) {
       toast.error(error?.response?.data?.message || "Coupon khong hop le");
     }
+  };
+
+  const clearCoupon = async () => {
+    await cartApi.clearCoupon();
+    toast.success("Da bo coupon");
+    refreshCart();
   };
 
   return (
@@ -73,7 +83,18 @@ export default function CartPage() {
           <p className="flex justify-between"><span>Van chuyen</span><span>{Number(cart.shippingFee || 0).toLocaleString()} VND</span></p>
           <p className="flex justify-between border-t border-rose-200 pt-2 text-base font-bold text-primary-700"><span>Thanh tien</span><span>{Number(cart.total || 0).toLocaleString()} VND</span></p>
         </div>
-        <button className="btn-secondary w-full" onClick={applyCoupon}>Ap dung coupon</button>
+        <form className="flex gap-2" onSubmit={applyCoupon}>
+          <input
+            className="min-w-0 flex-1"
+            placeholder="SPORT10, FREESHIP50..."
+            value={couponCode}
+            onChange={(event) => setCouponCode(event.target.value.toUpperCase())}
+          />
+          <button className="btn-secondary" type="submit">Ap dung</button>
+        </form>
+        {(cart.discount || 0) > 0 && (
+          <button className="btn-ghost w-full" onClick={clearCoupon}>Bo ma giam gia</button>
+        )}
         <button className="btn-primary w-full" onClick={() => navigate("/checkout")}>Thanh toan</button>
         <Link to="/products" className="block text-center text-sm font-semibold text-primary-700 hover:text-primary-600">Tiep tuc mua sam</Link>
       </aside>
