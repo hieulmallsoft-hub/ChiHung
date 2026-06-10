@@ -59,9 +59,19 @@ public class ProductServiceImpl implements ProductService {
                                              int page,
                                              int size) {
 
-        Pageable pageable = PageRequest.of(page, size, buildSort(sortBy));
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.max(1, Math.min(size, 100));
+        BigDecimal safeMinPrice = normalizePrice(minPrice);
+        BigDecimal safeMaxPrice = normalizePrice(maxPrice);
+        if (safeMinPrice != null && safeMaxPrice != null && safeMinPrice.compareTo(safeMaxPrice) > 0) {
+            BigDecimal temp = safeMinPrice;
+            safeMinPrice = safeMaxPrice;
+            safeMaxPrice = temp;
+        }
+
+        Pageable pageable = PageRequest.of(safePage, safeSize, buildSort(sortBy));
         Page<Product> products = productRepository.findAll(
-                ProductSpecification.filter(keyword, categoryId, brandId, minPrice, maxPrice, inStock),
+                ProductSpecification.filter(keyword, categoryId, brandId, safeMinPrice, safeMaxPrice, inStock),
                 pageable
         );
 
@@ -274,10 +284,17 @@ public class ProductServiceImpl implements ProductService {
             return Sort.by(Sort.Direction.DESC, "createdAt");
         }
         return switch (sortBy) {
-            case "priceAsc" -> Sort.by(Sort.Direction.ASC, "price");
-            case "priceDesc" -> Sort.by(Sort.Direction.DESC, "price");
+            case "priceAsc" -> Sort.by(Sort.Direction.ASC, "effectivePrice");
+            case "priceDesc" -> Sort.by(Sort.Direction.DESC, "effectivePrice");
             case "bestSeller" -> Sort.by(Sort.Direction.DESC, "soldCount");
             default -> Sort.by(Sort.Direction.DESC, "createdAt");
         };
+    }
+
+    private BigDecimal normalizePrice(BigDecimal value) {
+        if (value == null || value.compareTo(BigDecimal.ZERO) < 0) {
+            return null;
+        }
+        return value;
     }
 }

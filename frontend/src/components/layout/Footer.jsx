@@ -8,7 +8,7 @@ export default function Footer() {
             <p className="mt-3 text-sm leading-relaxed text-slate-400">
               Nền tảng bán đồ thể thao cao cấp, mang lại trải nghiệm mua sắm tuyệt đỉnh cho các tín đồ đam mê chinh phục.
             </p>
-            <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.25em] text-primary-400">Build for graduation 2026</p>
+            <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.25em] text-primary-400">Đồ án tốt nghiệp 2026</p>
           </div>
 
           <div>
@@ -27,9 +27,9 @@ export default function Footer() {
             <div className="mt-4 space-y-2 text-sm text-slate-400 font-light">
               <p className="hover:text-white transition-colors cursor-pointer">Email: support@sportshop.vn</p>
               <p className="hover:text-white transition-colors cursor-pointer">Hotline: 1900 8686</p>
-              <p className="hover:text-white transition-colors cursor-pointer">Address: District 1, Ho Chi Minh City</p>
+              <p className="hover:text-white transition-colors cursor-pointer">Địa chỉ: Quận 1, Thành phố Hồ Chí Minh</p>
             </div>
-            <p className="mt-6 text-[11px] text-slate-500 font-medium">© {new Date().getFullYear()} SportShop. All rights reserved.</p>
+            <p className="mt-6 text-[11px] text-slate-500 font-medium">© {new Date().getFullYear()} SportShop. Bảo lưu mọi quyền.</p>
           </div>
         </div>
       </div>

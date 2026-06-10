@@ -21,4 +21,16 @@ public final class SlugUtil {
                 .replaceAll("-+", "-");
         return normalized;
     }
+
+    public static String normalizeSearch(String value) {
+        if (value == null || value.isBlank()) {
+            return "";
+        }
+        return Normalizer.normalize(value, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9\\s-]", " ")
+                .trim()
+                .replaceAll("\\s+", " ");
+    }
 }

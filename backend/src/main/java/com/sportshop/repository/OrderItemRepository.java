@@ -13,7 +13,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, UUID> {
 
     List<OrderItem> findByOrder(Order order);
 
-    @Query("select oi.product.id, sum(oi.quantity) from OrderItem oi group by oi.product.id order by sum(oi.quantity) desc")
+    @Query("select oi.productName, sum(oi.quantity) from OrderItem oi where oi.order.status <> com.sportshop.enums.OrderStatus.CANCELLED group by oi.productName order by sum(oi.quantity) desc")
     List<Object[]> findTopSellingProductQuantities();
 
     @Query("select count(oi) > 0 from OrderItem oi where oi.product = :product and oi.order.user.id = :userId and oi.order.status = com.sportshop.enums.OrderStatus.DELIVERED")

@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Formula;
 
 import java.math.BigDecimal;
 
@@ -38,6 +39,9 @@ public class Product extends BaseEntity {
 
     @Column(precision = 15, scale = 2)
     private BigDecimal salePrice;
+
+    @Formula("case when sale_price is not null and sale_price > 0 then sale_price else price end")
+    private BigDecimal effectivePrice;
 
     @Column(length = 500)
     private String shortDescription;

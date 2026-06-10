@@ -91,7 +91,7 @@ export default function ProfilePage() {
           Cap nhat thong tin de nhan ho tro va giao hang nhanh hon.
         </div>
         <input value={profile.fullName || ""} onChange={(e) => setProfile((p) => ({ ...p, fullName: e.target.value }))} />
-        <input value={profile.email || ""} onChange={(e) => setProfile((p) => ({ ...p, email: e.target.value }))} />
+        <input value={profile.email || ""} readOnly className="cursor-not-allowed bg-slate-100 text-slate-500" />
         <input value={profile.phone || ""} onChange={(e) => setProfile((p) => ({ ...p, phone: e.target.value }))} />
         <input value={profile.avatarUrl || ""} placeholder="Avatar URL" onChange={(e) => setProfile((p) => ({ ...p, avatarUrl: e.target.value }))} />
         <button className="btn-primary" onClick={saveProfile}>Luu thay doi</button>

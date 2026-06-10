@@ -67,8 +67,8 @@ export const adminApi = {
   updateOrderPayment(id, payload) {
     return axiosClient.put(`/api/admin/orders/${id}/payment`, payload);
   },
-  getReport() {
-    return axiosClient.get("/api/admin/reports/revenue");
+  getReport(params) {
+    return axiosClient.get("/api/admin/reports/revenue", { params });
   },
   getCoupons() {
     return axiosClient.get("/api/admin/coupons");

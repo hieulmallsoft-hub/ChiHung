@@ -64,18 +64,24 @@ export default function ProductDetailPage() {
   const addToCart = async () => {
     if (!isAuthenticated) {
       toast.error("Vui long dang nhap de mua hang");
-      return;
+      return false;
     }
 
     const safeQuantity = Math.max(1, Math.min(Number(product?.stockQuantity || 1), Number(qty) || 1));
-    await cartApi.addItem({ productId: product.id, quantity: safeQuantity });
-    await refreshCart();
-    toast.success("Da them vao gio hang");
+    try {
+      await cartApi.addItem({ productId: product.id, quantity: safeQuantity });
+      await refreshCart();
+      toast.success("Da them vao gio hang");
+      return true;
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Khong them duoc vao gio hang");
+      return false;
+    }
   };
 
   const buyNow = async () => {
-    await addToCart();
-    navigate("/cart");
+    const added = await addToCart();
+    if (added) navigate("/cart");
   };
 
   const toggleStoredProduct = (key, setter) => {
@@ -139,6 +145,7 @@ export default function ProductDetailPage() {
   const productImage = activeImage || mediaItems[0] || buildProductPlaceholder(product.name);
   const isWishlisted = wishlist.some((item) => item.id === product.id);
   const isCompared = compareList.some((item) => item.id === product.id);
+  const outOfStock = Number(product.stockQuantity || 0) <= 0;
 
   const adjustQty = (delta) => {
     setQty((current) => {
@@ -267,10 +274,10 @@ export default function ProductDetailPage() {
               </button>
             </div>
             <div className="flex flex-wrap gap-3">
-              <button onClick={addToCart} className="btn-secondary flex-1 border-primary-200 bg-rose-50 text-primary-700">
-                Them vao gio
+              <button onClick={addToCart} className="btn-secondary flex-1 border-primary-200 bg-rose-50 text-primary-700" disabled={outOfStock}>
+                {outOfStock ? "Het hang" : "Them vao gio"}
               </button>
-              <button onClick={buyNow} className="btn-primary flex-1">
+              <button onClick={buyNow} className="btn-primary flex-1" disabled={outOfStock}>
                 Mua ngay
               </button>
             </div>

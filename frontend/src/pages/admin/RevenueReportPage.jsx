@@ -8,11 +8,11 @@ export default function RevenueReportPage() {
 
   useEffect(() => {
     const load = async () => {
-      const response = await adminApi.getReport();
+      const response = await adminApi.getReport({ range });
       setReport(response.data.data);
     };
     load();
-  }, []);
+  }, [range]);
 
   if (!report) return null;
 

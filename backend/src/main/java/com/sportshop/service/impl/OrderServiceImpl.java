@@ -31,6 +31,8 @@ import java.math.BigDecimal;
 @Service
 public class OrderServiceImpl implements OrderService {
 
+    private static final BigDecimal EXPRESS_SHIPPING_SURCHARGE = BigDecimal.valueOf(25000);
+
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
     private final CartRepository cartRepository;
@@ -100,7 +102,17 @@ public class OrderServiceImpl implements OrderService {
             }
         }
 
+        if (request.getCouponCode() != null && !request.getCouponCode().isBlank()) {
+            cart.setAppliedCouponCode(request.getCouponCode().trim());
+            cartRepository.save(cart);
+        }
+
         CartServiceImpl.PricingResult pricing = cartService.calculateTotals(cart);
+        BigDecimal shippingFee = resolveShippingFee(request.getShippingMethod(), pricing.shippingFee());
+        BigDecimal finalTotal = pricing.subtotal().add(shippingFee).subtract(pricing.discount());
+        if (finalTotal.compareTo(BigDecimal.ZERO) < 0) {
+            finalTotal = BigDecimal.ZERO;
+        }
 
         Order order = new Order();
         order.setOrderCode(CodeGenerator.orderCode());
@@ -113,9 +125,9 @@ public class OrderServiceImpl implements OrderService {
         order.setPaymentMethod(request.getPaymentMethod());
         order.setPaymentStatus(PaymentStatus.PENDING);
         order.setSubtotal(pricing.subtotal());
-        order.setShippingFee(pricing.shippingFee());
+        order.setShippingFee(shippingFee);
         order.setDiscountAmount(pricing.discount());
-        order.setFinalTotal(pricing.total());
+        order.setFinalTotal(finalTotal);
         order.setNote(request.getNote());
         order.setCoupon(pricing.coupon());
         order = orderRepository.save(order);
@@ -370,5 +382,12 @@ public class OrderServiceImpl implements OrderService {
                 address.getState() == null ? "" : address.getState(),
                 address.getCountry()
         ).replaceAll(", ,", ",").trim();
+    }
+
+    private BigDecimal resolveShippingFee(String shippingMethod, BigDecimal standardFee) {
+        if ("EXPRESS".equalsIgnoreCase(shippingMethod)) {
+            return standardFee.add(EXPRESS_SHIPPING_SURCHARGE);
+        }
+        return standardFee;
     }
 }

@@ -58,12 +58,7 @@ public class UserServiceImpl implements UserService {
     public UserResponse updateProfile(String email, UserUpdateRequest request) {
         User user = getUserByEmail(email);
 
-        if (!user.getEmail().equalsIgnoreCase(request.getEmail()) && userRepository.existsByEmail(request.getEmail())) {
-            throw new BadRequestException("Email already exists");
-        }
-
         user.setFullName(request.getFullName());
-        user.setEmail(request.getEmail().toLowerCase());
         user.setPhone(request.getPhone());
         user.setAvatarUrl(request.getAvatarUrl());
 

@@ -19,5 +19,7 @@ public class CheckoutRequest {
 
     private String couponCode;
 
+    private String shippingMethod;
+
     private String note;
 }

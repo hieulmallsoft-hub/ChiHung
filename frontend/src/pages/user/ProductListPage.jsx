@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { catalogApi } from "../../api/catalogApi";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
@@ -12,6 +13,7 @@ const initialFilter = {
   brandId: "",
   minPrice: "",
   maxPrice: "",
+  inStock: "",
   sortBy: "newest",
 };
 
@@ -22,6 +24,8 @@ export default function ProductListPage() {
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [pageData, setPageData] = useState(null);
+  const [searchParams] = useSearchParams();
+  const keywordFromUrl = searchParams.get("keyword") || "";
 
   useEffect(() => {
     const bootstrap = async () => {
@@ -35,6 +39,14 @@ export default function ProductListPage() {
     };
     bootstrap();
   }, []);
+
+  useEffect(() => {
+    setFilters((prev) => {
+      if (prev.keyword === keywordFromUrl) return prev;
+      return { ...prev, keyword: keywordFromUrl };
+    });
+    setPage(0);
+  }, [keywordFromUrl]);
 
   const params = useMemo(() => {
     const p = { ...filters, page, size: 12 };
@@ -127,6 +139,14 @@ export default function ProductListPage() {
           onChange={(e) => handleFilterChange("maxPrice", e.target.value)}
           placeholder="Gia den"
         />
+
+        <select
+          value={filters.inStock}
+          onChange={(e) => handleFilterChange("inStock", e.target.value)}
+        >
+          <option value="">Tat ca ton kho</option>
+          <option value="true">Con hang</option>
+        </select>
 
         <select
           value={filters.sortBy}

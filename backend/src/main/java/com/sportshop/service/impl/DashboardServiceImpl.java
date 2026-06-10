@@ -3,6 +3,7 @@ package com.sportshop.service.impl;
 import com.sportshop.dto.dashboard.DashboardResponse;
 import com.sportshop.entity.Order;
 import com.sportshop.enums.OrderStatus;
+import com.sportshop.enums.PaymentStatus;
 import com.sportshop.repository.OrderItemRepository;
 import com.sportshop.repository.OrderRepository;
 import com.sportshop.repository.ProductRepository;
@@ -16,7 +17,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class DashboardServiceImpl implements DashboardService {
@@ -38,12 +38,19 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public DashboardResponse getSummary() {
+        return getSummary(7);
+    }
+
+    @Override
+    public DashboardResponse getSummary(int days) {
+        int rangeDays = Math.max(1, Math.min(days, 365));
         long totalUsers = userRepository.countByDeletedFalse();
         long totalProducts = productRepository.countByDeletedFalse();
         long totalOrders = orderRepository.count();
+        List<Order> orders = orderRepository.findAll();
 
-        BigDecimal totalRevenue = orderRepository.findAll().stream()
-                .filter(o -> o.getStatus() != OrderStatus.CANCELLED)
+        BigDecimal totalRevenue = orders.stream()
+                .filter(this::isRevenueOrder)
                 .map(Order::getFinalTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -60,9 +67,8 @@ public class DashboardServiceImpl implements DashboardService {
         var rawTopProducts = orderItemRepository.findTopSellingProductQuantities();
         for (int i = 0; i < Math.min(rawTopProducts.size(), 5); i++) {
             Object[] row = rawTopProducts.get(i);
-            UUID productId = (UUID) row[0];
+            String productName = (String) row[0];
             long sold = ((Number) row[1]).longValue();
-            String productName = productRepository.findById(productId).map(p -> p.getName()).orElse("Unknown");
             topProducts.add(DashboardResponse.TopProduct.builder()
                     .productName(productName)
                     .sold(sold)
@@ -70,14 +76,14 @@ public class DashboardServiceImpl implements DashboardService {
         }
 
         List<DashboardResponse.RevenuePoint> revenueByDay = new ArrayList<>();
-        for (int dayOffset = 6; dayOffset >= 0; dayOffset--) {
+        for (int dayOffset = rangeDays - 1; dayOffset >= 0; dayOffset--) {
             LocalDate date = LocalDate.now().minusDays(dayOffset);
             LocalDateTime from = date.atStartOfDay();
             LocalDateTime to = date.plusDays(1).atStartOfDay();
 
-            BigDecimal revenue = orderRepository.findAll().stream()
+            BigDecimal revenue = orders.stream()
                     .filter(o -> !o.getCreatedAt().isBefore(from) && o.getCreatedAt().isBefore(to))
-                    .filter(o -> o.getStatus() != OrderStatus.CANCELLED)
+                    .filter(this::isRevenueOrder)
                     .map(Order::getFinalTotal)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -104,5 +110,10 @@ public class DashboardServiceImpl implements DashboardService {
                 .revenueByDay(revenueByDay)
                 .orderStatusStats(statusPoints)
                 .build();
+    }
+
+    private boolean isRevenueOrder(Order order) {
+        return order.getStatus() != OrderStatus.CANCELLED
+                && order.getPaymentStatus() == PaymentStatus.PAID;
     }
 }

@@ -4,4 +4,5 @@ import com.sportshop.dto.dashboard.DashboardResponse;
 
 public interface DashboardService {
     DashboardResponse getSummary();
+    DashboardResponse getSummary(int days);
 }

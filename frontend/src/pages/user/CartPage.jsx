@@ -16,14 +16,22 @@ export default function CartPage() {
 
   const updateQty = async (itemId, quantity) => {
     if (quantity <= 0) return;
-    await cartApi.updateItem(itemId, { quantity });
-    refreshCart();
+    try {
+      await cartApi.updateItem(itemId, { quantity });
+      refreshCart();
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Khong cap nhat duoc so luong");
+    }
   };
 
   const removeItem = async (itemId) => {
-    await cartApi.removeItem(itemId);
-    toast.success("Da xoa san pham");
-    refreshCart();
+    try {
+      await cartApi.removeItem(itemId);
+      toast.success("Da xoa san pham");
+      refreshCart();
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Khong xoa duoc san pham");
+    }
   };
 
   const applyCoupon = async (event) => {
@@ -41,9 +49,13 @@ export default function CartPage() {
   };
 
   const clearCoupon = async () => {
-    await cartApi.clearCoupon();
-    toast.success("Da bo coupon");
-    refreshCart();
+    try {
+      await cartApi.clearCoupon();
+      toast.success("Da bo coupon");
+      refreshCart();
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Khong bo duoc coupon");
+    }
   };
 
   return (

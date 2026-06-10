@@ -143,6 +143,7 @@ export default function CheckoutPage() {
         addressId: form.addressId,
         paymentMethod: form.paymentMethod,
         couponCode: form.couponCode,
+        shippingMethod: form.shippingMethod,
         note: `[${selectedShipping.label}] ${form.note || ""}`.trim(),
       });
       toast.success("Dat hang thanh cong");
