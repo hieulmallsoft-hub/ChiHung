@@ -84,8 +84,13 @@ export default function OrderHistoryPage() {
   ];
 
   const loadOrders = async (page = 0) => {
+    const tab = tabs.find((item) => item.key === activeTab);
     const [ordersRes, statsRes] = await Promise.all([
-      orderApi.getMyOrders({ page, size: 10 }),
+      orderApi.getMyOrders({
+        page,
+        size: 10,
+        statuses: tab?.statuses?.join(",") || undefined,
+      }),
       orderApi.getSpendingStats(),
     ]);
 
@@ -95,7 +100,7 @@ export default function OrderHistoryPage() {
 
   useEffect(() => {
     loadOrders();
-  }, []);
+  }, [activeTab]);
 
   useEffect(() => {
     const client = createChatStompClient({
@@ -142,12 +147,7 @@ export default function OrderHistoryPage() {
     return counts;
   }, [pageData]);
 
-  const filteredOrders = useMemo(() => {
-    const orders = pageData?.content || [];
-    const tab = tabs.find((item) => item.key === activeTab);
-    if (!tab || !tab.statuses) return orders;
-    return orders.filter((order) => tab.statuses.includes(order.status));
-  }, [activeTab, pageData]);
+  const filteredOrders = pageData?.content || [];
 
   const handleCancel = async (id) => {
     try {

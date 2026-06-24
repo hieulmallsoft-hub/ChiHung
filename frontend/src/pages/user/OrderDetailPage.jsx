@@ -5,11 +5,24 @@ import { orderApi } from "../../api/orderApi";
 import { createChatStompClient } from "../../utils/chatSocket";
 
 const orderSteps = [
-  { id: "PENDING", label: "Cho xac nhan" },
-  { id: "CONFIRMED", label: "Da xac nhan" },
-  { id: "SHIPPING", label: "Dang giao" },
-  { id: "DELIVERED", label: "Da giao" },
+  { id: "PENDING", label: "Chờ xác nhận", description: "Shop đã nhận được đơn hàng" },
+  { id: "CONFIRMED", label: "Đã xác nhận", description: "Shop đã xác nhận đơn hàng" },
+  { id: "PROCESSING", label: "Đang chuẩn bị", description: "Sản phẩm đang được đóng gói" },
+  { id: "SHIPPING", label: "Đang giao", description: "Đơn hàng đang trên đường giao" },
+  { id: "DELIVERED", label: "Đã giao", description: "Giao hàng thành công" },
 ];
+
+const statusLabels = {
+  PENDING: "Chờ xác nhận",
+  CONFIRMED: "Đã xác nhận",
+  PROCESSING: "Đang chuẩn bị hàng",
+  SHIPPING: "Đang giao hàng",
+  DELIVERED: "Đã giao hàng",
+  CANCELLED: "Đã hủy",
+};
+
+const formatDateTime = (value) =>
+  value ? new Date(value).toLocaleString("vi-VN") : "Chưa cập nhật";
 
 export default function OrderDetailPage() {
   const { id } = useParams();
@@ -29,11 +42,12 @@ export default function OrderDetailPage() {
     if (!id) return;
     const client = createChatStompClient({
       onConnect: () => {
-        client.subscribe("/user/queue/orders", (frame) => {
+        client.subscribe("/user/queue/orders", async (frame) => {
           try {
             const payload = JSON.parse(frame.body);
             if (!payload?.orderId || payload.orderId !== id) return;
-            setOrder((prev) => (prev ? { ...prev, status: payload.status } : prev));
+            const response = await orderApi.getMyOrderDetail(id);
+            setOrder(response.data.data);
           } catch {
             // ignore malformed payload
           }
@@ -54,11 +68,11 @@ export default function OrderDetailPage() {
   const cancelOrder = async () => {
     try {
       await orderApi.cancelOrder(id);
-      toast.success("Da huy don hang");
+      toast.success("Đã hủy đơn hàng");
       const response = await orderApi.getMyOrderDetail(id);
       setOrder(response.data.data);
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Khong the huy don");
+      toast.error(error?.response?.data?.message || "Không thể hủy đơn");
     }
   };
 
@@ -66,6 +80,9 @@ export default function OrderDetailPage() {
 
   const currentStep = orderSteps.findIndex((step) => step.id === order.status);
   const isCancelled = order.status === "CANCELLED";
+  const history = order.statusHistory?.length
+    ? order.statusHistory
+    : [{ status: order.status, createdAt: order.createdAt, note: "Trạng thái hiện tại" }];
   const printInvoice = () => {
     window.print();
   };
@@ -75,31 +92,31 @@ export default function OrderDetailPage() {
       <section className="card p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="font-heading text-2xl font-bold text-slate-900">Don hang {order.orderCode}</h1>
-            <p className="text-sm text-slate-500">Trang thai: {order.status}</p>
+            <h1 className="font-heading text-2xl font-bold text-slate-900">Đơn hàng {order.orderCode}</h1>
+            <p className="text-sm text-slate-500">Trạng thái: {statusLabels[order.status] || order.status}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <button className="btn-secondary text-primary-700" onClick={printInvoice}>
-              In hoa don
+              In hóa đơn
             </button>
           {(order.status === "PENDING" || order.status === "CONFIRMED") && (
             <button className="btn-secondary text-primary-700" onClick={cancelOrder}>
-              Huy don hang
+              Hủy đơn hàng
             </button>
           )}
           </div>
         </div>
-        <p className="mt-3 text-sm text-slate-600">Dia chi: {order.shippingAddress}</p>
+        <p className="mt-3 text-sm text-slate-600">Địa chỉ: {order.shippingAddress}</p>
       </section>
 
       <section className="card p-5">
-        <h2 className="mb-4 font-heading text-xl font-bold">Tien trinh don hang</h2>
+        <h2 className="mb-4 font-heading text-xl font-bold">Hành trình đơn hàng</h2>
         {isCancelled ? (
           <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-700">
-            Don hang da bi huy. Neu ban can doi/tra hoac ho tro hoan tien, hay lien he chat voi admin.
+            Đơn hàng đã bị hủy. Nếu đã thanh toán, trạng thái thanh toán sẽ được chuyển sang hoàn tiền.
           </div>
         ) : (
-          <div className="grid gap-3 md:grid-cols-4">
+          <div className="grid gap-3 md:grid-cols-5">
             {orderSteps.map((step, index) => {
               const done = index <= currentStep;
               return (
@@ -108,7 +125,8 @@ export default function OrderDetailPage() {
                     {index + 1}
                   </div>
                   <p className="font-semibold text-slate-900">{step.label}</p>
-                  <p className="mt-1 text-xs text-slate-500">{done ? "Da cap nhat" : "Dang cho"}</p>
+                  <p className="mt-1 text-xs text-slate-500">{step.description}</p>
+                  <p className="mt-2 text-xs font-semibold text-slate-500">{done ? "Đã cập nhật" : "Đang chờ"}</p>
                 </div>
               );
             })}
@@ -117,13 +135,30 @@ export default function OrderDetailPage() {
       </section>
 
       <section className="card p-5">
-        <h2 className="mb-3 font-heading text-xl font-bold">Danh sach san pham</h2>
+        <h2 className="mb-4 font-heading text-xl font-bold">Chi tiết cập nhật</h2>
+        <div className="space-y-0">
+          {[...history].reverse().map((event, index) => (
+            <div key={`${event.status}-${event.createdAt}-${index}`} className="relative flex gap-4 pb-5 last:pb-0">
+              {index < history.length - 1 && <span className="absolute left-[7px] top-4 h-full w-px bg-rose-200" />}
+              <span className="relative mt-1 h-4 w-4 shrink-0 rounded-full border-4 border-rose-100 bg-primary-600" />
+              <div>
+                <p className="font-semibold text-slate-900">{statusLabels[event.status] || event.status}</p>
+                <p className="text-sm text-slate-500">{event.note || "Trạng thái đơn hàng đã được cập nhật"}</p>
+                <p className="mt-1 text-xs text-slate-400">{formatDateTime(event.createdAt)}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="card p-5">
+        <h2 className="mb-3 font-heading text-xl font-bold">Danh sách sản phẩm</h2>
         <div className="space-y-3">
           {order.items.map((item) => (
             <div key={item.productId} className="flex justify-between rounded-lg border border-rose-100 p-3 text-sm">
               <div>
                 <p className="font-semibold">{item.productName}</p>
-                <p className="text-slate-500">So luong: {item.quantity}</p>
+                <p className="text-slate-500">Số lượng: {item.quantity}</p>
               </div>
               <p className="font-semibold text-primary-700">{Number(item.lineTotal).toLocaleString()} VND</p>
             </div>
@@ -132,17 +167,17 @@ export default function OrderDetailPage() {
       </section>
 
       <section className="card p-5">
-        <h2 className="mb-3 font-heading text-xl font-bold">Tong ket thanh toan</h2>
-        <p className="flex justify-between text-sm"><span>Phuong thuc</span><span>{order.paymentMethod}</span></p>
-        <p className="flex justify-between text-sm"><span>Trang thai thanh toan</span><span>{order.paymentStatus}</span></p>
-        <p className="flex justify-between text-sm"><span>Tam tinh</span><span>{Number(order.subtotal).toLocaleString()} VND</span></p>
-        <p className="flex justify-between text-sm"><span>Ship</span><span>{Number(order.shippingFee).toLocaleString()} VND</span></p>
-        <p className="flex justify-between text-sm"><span>Giam gia</span><span>- {Number(order.discountAmount).toLocaleString()} VND</span></p>
-        <p className="flex justify-between border-t border-rose-200 pt-2 text-lg font-bold text-primary-700"><span>Thanh tien</span><span>{Number(order.finalTotal).toLocaleString()} VND</span></p>
+        <h2 className="mb-3 font-heading text-xl font-bold">Tổng kết thanh toán</h2>
+        <p className="flex justify-between text-sm"><span>Phương thức</span><span>{order.paymentMethod}</span></p>
+        <p className="flex justify-between text-sm"><span>Trạng thái thanh toán</span><span>{order.paymentStatus}</span></p>
+        <p className="flex justify-between text-sm"><span>Tạm tính</span><span>{Number(order.subtotal).toLocaleString()} VND</span></p>
+        <p className="flex justify-between text-sm"><span>Phí vận chuyển</span><span>{Number(order.shippingFee).toLocaleString()} VND</span></p>
+        <p className="flex justify-between text-sm"><span>Giảm giá</span><span>- {Number(order.discountAmount).toLocaleString()} VND</span></p>
+        <p className="flex justify-between border-t border-rose-200 pt-2 text-lg font-bold text-primary-700"><span>Thành tiền</span><span>{Number(order.finalTotal).toLocaleString()} VND</span></p>
       </section>
 
       <button onClick={() => navigate("/orders")} className="btn-secondary">
-        Quay lai danh sach don hang
+        Quay lại danh sách đơn hàng
       </button>
     </div>
   );

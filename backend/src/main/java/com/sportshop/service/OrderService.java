@@ -12,7 +12,7 @@ import java.util.UUID;
 public interface OrderService {
     OrderResponse checkout(String email, CheckoutRequest request);
 
-    Page<OrderResponse> getMyOrders(String email, int page, int size);
+    Page<OrderResponse> getMyOrders(String email, String statuses, int page, int size);
 
     OrderResponse getMyOrderDetail(String email, UUID orderId);
 

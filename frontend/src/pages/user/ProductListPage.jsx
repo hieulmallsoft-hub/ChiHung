@@ -21,6 +21,7 @@ export default function ProductListPage() {
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [filters, setFilters] = useState(initialFilter);
+  const [debouncedKeyword, setDebouncedKeyword] = useState("");
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [pageData, setPageData] = useState(null);
@@ -48,13 +49,18 @@ export default function ProductListPage() {
     setPage(0);
   }, [keywordFromUrl]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedKeyword(filters.keyword.trim()), 300);
+    return () => clearTimeout(timer);
+  }, [filters.keyword]);
+
   const params = useMemo(() => {
-    const p = { ...filters, page, size: 12 };
+    const p = { ...filters, keyword: debouncedKeyword, page, size: 12 };
     Object.keys(p).forEach((key) => {
       if (p[key] === "") delete p[key];
     });
     return p;
-  }, [filters, page]);
+  }, [filters, debouncedKeyword, page]);
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -129,12 +135,14 @@ export default function ProductListPage() {
 
         <input
           type="number"
+          min="0"
           value={filters.minPrice}
           onChange={(e) => handleFilterChange("minPrice", e.target.value)}
           placeholder="Gia tu"
         />
         <input
           type="number"
+          min="0"
           value={filters.maxPrice}
           onChange={(e) => handleFilterChange("maxPrice", e.target.value)}
           placeholder="Gia den"
@@ -146,6 +154,7 @@ export default function ProductListPage() {
         >
           <option value="">Tat ca ton kho</option>
           <option value="true">Con hang</option>
+          <option value="false">Hết hàng</option>
         </select>
 
         <select
@@ -176,6 +185,11 @@ export default function ProductListPage() {
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
+          {(pageData?.content || []).length === 0 && (
+            <div className="rounded-2xl border border-rose-100 bg-white p-8 text-center text-slate-500">
+              Không tìm thấy sản phẩm phù hợp. Hãy thử từ khóa hoặc khoảng giá khác.
+            </div>
+          )}
           <Pagination pageInfo={pageData} onPageChange={setPage} />
         </>
       )}

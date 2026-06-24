@@ -31,9 +31,11 @@ public class OrderController {
 
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<Page<OrderResponse>>> getMyOrders(Authentication authentication,
+                                                                        @RequestParam(required = false) String statuses,
                                                                         @RequestParam(defaultValue = "0") int page,
                                                                         @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(ApiResponse.success("My orders", orderService.getMyOrders(authentication.getName(), page, size)));
+        return ResponseEntity.ok(ApiResponse.success("My orders",
+                orderService.getMyOrders(authentication.getName(), statuses, page, size)));
     }
 
     @GetMapping("/me/{id}")

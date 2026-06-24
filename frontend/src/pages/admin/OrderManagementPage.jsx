@@ -3,14 +3,28 @@ import toast from "react-hot-toast";
 import { adminApi } from "../../api/adminApi";
 
 const statuses = ["PENDING", "CONFIRMED", "PROCESSING", "SHIPPING", "DELIVERED", "CANCELLED"];
+const nextStatuses = {
+  PENDING: ["CONFIRMED", "CANCELLED"],
+  CONFIRMED: ["PROCESSING", "CANCELLED"],
+  PROCESSING: ["SHIPPING", "CANCELLED"],
+  SHIPPING: ["DELIVERED"],
+  DELIVERED: [],
+  CANCELLED: [],
+};
 
 export default function OrderManagementPage() {
   const [orders, setOrders] = useState([]);
   const [statusFilter, setStatusFilter] = useState("");
+  const [keyword, setKeyword] = useState("");
   const [updatingStatus, setUpdatingStatus] = useState({});
 
   const loadOrders = async () => {
-    const response = await adminApi.getOrders({ page: 0, size: 20, status: statusFilter || undefined });
+    const response = await adminApi.getOrders({
+      page: 0,
+      size: 20,
+      status: statusFilter || undefined,
+      keyword: keyword.trim() || undefined,
+    });
     setOrders(response.data.data.content || []);
   };
 
@@ -59,9 +73,15 @@ export default function OrderManagementPage() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-rose-200">Orders</p>
           <h1 className="mt-2 font-heading text-2xl font-bold text-white">Order Management</h1>
-          <p className="mt-1 text-sm text-slate-300">Cap nhat trang thai va theo doi thanh toan.</p>
+          <p className="mt-1 text-sm text-slate-300">Chỉ chuyển trạng thái theo đúng quy trình xử lý đơn hàng.</p>
         </div>
         <div className="flex gap-2">
+          <input
+            className="admin-input"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            placeholder="Mã đơn, tên, SĐT"
+          />
           <select className="admin-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="">Tat ca</option>
             {statuses.map((status) => <option key={status} value={status}>{status}</option>)}
@@ -91,15 +111,16 @@ export default function OrderManagementPage() {
                 const isActive = status === order.status;
                 const isUpdating = Boolean(updatingStatus[order.id]);
                 const isFinalized = order.status === "CANCELLED" || order.status === "DELIVERED";
+                const isAllowed = nextStatuses[order.status]?.includes(status);
                 return (
                   <button
                     key={status}
                     aria-pressed={isActive}
-                    disabled={isUpdating || isFinalized}
+                    disabled={isUpdating || isFinalized || (!isActive && !isAllowed)}
                     className={`rounded-full border px-3 py-1 text-[11px] font-semibold transition ${
                       isActive
                         ? "border-rose-300 bg-rose-400/20 text-rose-100 shadow-soft"
-                        : isFinalized
+                        : isFinalized || !isAllowed
                           ? "border-white/5 bg-white/5 text-slate-500 opacity-40"
                           : "border-white/10 bg-white/5 text-slate-300 opacity-60 hover:opacity-100 hover:border-rose-400 hover:text-white"
                     }`}

@@ -2,14 +2,22 @@ package com.sportshop.mapper;
 
 import com.sportshop.dto.order.OrderItemResponse;
 import com.sportshop.dto.order.OrderResponse;
+import com.sportshop.dto.order.OrderStatusHistoryResponse;
 import com.sportshop.entity.Order;
 import com.sportshop.entity.OrderItem;
+import com.sportshop.repository.OrderStatusHistoryRepository;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
 public class OrderMapper {
+
+    private final OrderStatusHistoryRepository orderStatusHistoryRepository;
+
+    public OrderMapper(OrderStatusHistoryRepository orderStatusHistoryRepository) {
+        this.orderStatusHistoryRepository = orderStatusHistoryRepository;
+    }
 
     public OrderResponse toResponse(Order order, List<OrderItem> items) {
         List<OrderItemResponse> itemResponses = items.stream()
@@ -32,6 +40,14 @@ public class OrderMapper {
                 .note(order.getNote())
                 .createdAt(order.getCreatedAt())
                 .items(itemResponses)
+                .statusHistory(orderStatusHistoryRepository.findByOrderOrderByCreatedAtAsc(order).stream()
+                        .map(history -> OrderStatusHistoryResponse.builder()
+                                .status(history.getStatus())
+                                .changedBy(history.getChangedBy())
+                                .note(history.getNote())
+                                .createdAt(history.getCreatedAt())
+                                .build())
+                        .toList())
                 .build();
     }
 

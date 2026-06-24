@@ -29,4 +29,5 @@ public class OrderResponse {
     private String note;
     private LocalDateTime createdAt;
     private List<OrderItemResponse> items;
+    private List<OrderStatusHistoryResponse> statusHistory;
 }

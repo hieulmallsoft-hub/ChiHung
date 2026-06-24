@@ -10,6 +10,7 @@ import com.sportshop.entity.*;
 import com.sportshop.enums.InventoryChangeType;
 import com.sportshop.enums.OrderStatus;
 import com.sportshop.enums.PaymentStatus;
+import com.sportshop.enums.ProductStatus;
 import com.sportshop.exception.BadRequestException;
 import com.sportshop.exception.ResourceNotFoundException;
 import com.sportshop.mapper.OrderMapper;
@@ -19,12 +20,18 @@ import com.sportshop.util.CodeGenerator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.UUID;
 import java.math.BigDecimal;
 
@@ -42,6 +49,7 @@ public class OrderServiceImpl implements OrderService {
     private final PaymentRepository paymentRepository;
     private final ProductRepository productRepository;
     private final InventoryLogRepository inventoryLogRepository;
+    private final OrderStatusHistoryRepository orderStatusHistoryRepository;
     private final CouponUsageRepository couponUsageRepository;
     private final OrderMapper orderMapper;
     private final CartServiceImpl cartService;
@@ -56,6 +64,7 @@ public class OrderServiceImpl implements OrderService {
                             PaymentRepository paymentRepository,
                             ProductRepository productRepository,
                             InventoryLogRepository inventoryLogRepository,
+                            OrderStatusHistoryRepository orderStatusHistoryRepository,
                             CouponUsageRepository couponUsageRepository,
                             OrderMapper orderMapper,
                             CartServiceImpl cartService,
@@ -69,6 +78,7 @@ public class OrderServiceImpl implements OrderService {
         this.paymentRepository = paymentRepository;
         this.productRepository = productRepository;
         this.inventoryLogRepository = inventoryLogRepository;
+        this.orderStatusHistoryRepository = orderStatusHistoryRepository;
         this.couponUsageRepository = couponUsageRepository;
         this.orderMapper = orderMapper;
         this.cartService = cartService;
@@ -96,9 +106,22 @@ public class OrderServiceImpl implements OrderService {
             throw new BadRequestException("Cart is empty");
         }
 
+        Map<UUID, Product> lockedProducts = items.stream()
+                .map(item -> item.getProduct().getId())
+                .distinct()
+                .sorted(Comparator.comparing(UUID::toString))
+                .map(productId -> productRepository.findByIdForUpdate(productId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Product not found")))
+                .collect(Collectors.toMap(Product::getId, Function.identity()));
+
         for (CartItem item : items) {
-            if (item.getQuantity() > item.getProduct().getStockQuantity()) {
-                throw new BadRequestException("Product " + item.getProduct().getName() + " exceeds stock");
+            Product product = lockedProducts.get(item.getProduct().getId());
+            if (product.getStatus() != ProductStatus.ACTIVE || product.getStockQuantity() <= 0) {
+                throw new BadRequestException("Product " + product.getName() + " is out of stock");
+            }
+            if (item.getQuantity() > product.getStockQuantity()) {
+                throw new BadRequestException("Product " + product.getName() + " only has "
+                        + product.getStockQuantity() + " item(s) left");
             }
         }
 
@@ -131,9 +154,10 @@ public class OrderServiceImpl implements OrderService {
         order.setNote(request.getNote());
         order.setCoupon(pricing.coupon());
         order = orderRepository.save(order);
+        recordStatus(order, OrderStatus.PENDING, "SYSTEM", "Đặt hàng thành công");
 
         for (CartItem cartItem : items) {
-            Product product = cartItem.getProduct();
+            Product product = lockedProducts.get(cartItem.getProduct().getId());
             int before = product.getStockQuantity();
             int qty = cartItem.getQuantity();
             product.setStockQuantity(before - qty);
@@ -187,10 +211,26 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Page<OrderResponse> getMyOrders(String email, int page, int size) {
+    public Page<OrderResponse> getMyOrders(String email, String statuses, int page, int size) {
         User user = getUser(email);
-        Pageable pageable = PageRequest.of(page, size);
-        return orderRepository.findByUserOrderByCreatedAtDesc(user, pageable)
+        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.max(1, Math.min(size, 100)),
+                org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
+        Specification<Order> specification = (root, query, cb) -> cb.equal(root.get("user"), user);
+        if (statuses != null && !statuses.isBlank()) {
+            try {
+                List<OrderStatus> parsedStatuses = java.util.Arrays.stream(statuses.split(","))
+                        .map(String::trim)
+                        .filter(value -> !value.isBlank())
+                        .map(value -> OrderStatus.valueOf(value.toUpperCase()))
+                        .toList();
+                if (!parsedStatuses.isEmpty()) {
+                    specification = specification.and((root, query, cb) -> root.get("status").in(parsedStatuses));
+                }
+            } catch (IllegalArgumentException ex) {
+                throw new BadRequestException("Invalid order status filter");
+            }
+        }
+        return orderRepository.findAll(specification, pageable)
                 .map(order -> orderMapper.toResponse(order, orderItemRepository.findByOrder(order)));
     }
 
@@ -213,23 +253,34 @@ public class OrderServiceImpl implements OrderService {
             throw new BadRequestException("Order cannot be cancelled in current status");
         }
 
-        cancelOrder(order);
+        cancelOrder(order, "CUSTOMER", "Khách hàng đã hủy đơn");
+        orderRepository.save(order);
         publishOrderStatus(order);
     }
 
     @Override
     public Page<OrderResponse> getOrders(String keyword, String status, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Order> orders;
+        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.max(1, Math.min(size, 100)));
+        Specification<Order> specification = Specification.where(null);
 
         if (keyword != null && !keyword.isBlank()) {
-            orders = orderRepository.findByOrderCodeContainingIgnoreCase(keyword, pageable);
-        } else if (status != null && !status.isBlank()) {
-            orders = orderRepository.findByStatus(OrderStatus.valueOf(status), pageable);
-        } else {
-            orders = orderRepository.findAll(pageable);
+            String pattern = "%" + keyword.trim().toLowerCase() + "%";
+            specification = specification.and((root, query, cb) -> cb.or(
+                    cb.like(cb.lower(root.get("orderCode")), pattern),
+                    cb.like(cb.lower(root.get("receiverName")), pattern),
+                    cb.like(cb.lower(root.get("receiverPhone")), pattern)
+            ));
+        }
+        if (status != null && !status.isBlank()) {
+            try {
+                OrderStatus parsedStatus = OrderStatus.valueOf(status.trim().toUpperCase());
+                specification = specification.and((root, query, cb) -> cb.equal(root.get("status"), parsedStatus));
+            } catch (IllegalArgumentException ex) {
+                throw new BadRequestException("Invalid order status");
+            }
         }
 
+        Page<Order> orders = orderRepository.findAll(specification, pageable);
         return orders.map(order -> orderMapper.toResponse(order, orderItemRepository.findByOrder(order)));
     }
 
@@ -249,11 +300,20 @@ public class OrderServiceImpl implements OrderService {
         OrderStatus oldStatus = order.getStatus();
         OrderStatus newStatus = request.getStatus();
 
-        if (oldStatus == OrderStatus.CANCELLED || oldStatus == OrderStatus.DELIVERED) {
-            throw new BadRequestException("Finalized order cannot be updated");
+        if (oldStatus == newStatus) {
+            return orderMapper.toResponse(order, orderItemRepository.findByOrder(order));
+        }
+        if (!isAllowedTransition(oldStatus, newStatus)) {
+            throw new BadRequestException("Cannot change order status from " + oldStatus + " to " + newStatus);
         }
 
-        order.setStatus(newStatus);
+        if (newStatus == OrderStatus.CANCELLED) {
+            cancelOrder(order, "ADMIN", "Quản trị viên đã hủy đơn");
+        } else {
+            order.setStatus(newStatus);
+            recordStatus(order, newStatus, "ADMIN", statusNote(newStatus));
+        }
+
         if (newStatus == OrderStatus.DELIVERED && order.getPaymentStatus() == PaymentStatus.PENDING) {
             order.setPaymentStatus(PaymentStatus.PAID);
             paymentRepository.findByOrderId(order.getId()).ifPresent(p -> {
@@ -261,10 +321,6 @@ public class OrderServiceImpl implements OrderService {
                 p.setPaidAt(LocalDateTime.now());
                 paymentRepository.save(p);
             });
-        }
-
-        if (newStatus == OrderStatus.CANCELLED) {
-            cancelOrder(order);
         }
 
         orderRepository.save(order);
@@ -319,7 +375,7 @@ public class OrderServiceImpl implements OrderService {
                 .build();
     }
 
-    private void cancelOrder(Order order) {
+    private void cancelOrder(Order order, String changedBy, String note) {
         if (order.getStatus() == OrderStatus.CANCELLED) {
             return;
         }
@@ -347,6 +403,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         order.setStatus(OrderStatus.CANCELLED);
+        recordStatus(order, OrderStatus.CANCELLED, changedBy, note);
         if (order.getPaymentStatus() == PaymentStatus.PAID) {
             order.setPaymentStatus(PaymentStatus.REFUNDED);
             paymentRepository.findByOrderId(order.getId()).ifPresent(payment -> {
@@ -382,6 +439,36 @@ public class OrderServiceImpl implements OrderService {
                 address.getState() == null ? "" : address.getState(),
                 address.getCountry()
         ).replaceAll(", ,", ",").trim();
+    }
+
+    private boolean isAllowedTransition(OrderStatus current, OrderStatus next) {
+        return switch (current) {
+            case PENDING -> EnumSet.of(OrderStatus.CONFIRMED, OrderStatus.CANCELLED).contains(next);
+            case CONFIRMED -> EnumSet.of(OrderStatus.PROCESSING, OrderStatus.CANCELLED).contains(next);
+            case PROCESSING -> EnumSet.of(OrderStatus.SHIPPING, OrderStatus.CANCELLED).contains(next);
+            case SHIPPING -> next == OrderStatus.DELIVERED;
+            case DELIVERED, CANCELLED -> false;
+        };
+    }
+
+    private void recordStatus(Order order, OrderStatus status, String changedBy, String note) {
+        OrderStatusHistory history = new OrderStatusHistory();
+        history.setOrder(order);
+        history.setStatus(status);
+        history.setChangedBy(changedBy);
+        history.setNote(note);
+        orderStatusHistoryRepository.save(history);
+    }
+
+    private String statusNote(OrderStatus status) {
+        return switch (status) {
+            case CONFIRMED -> "Shop đã xác nhận đơn hàng";
+            case PROCESSING -> "Đơn hàng đang được chuẩn bị";
+            case SHIPPING -> "Đơn hàng đã được bàn giao cho đơn vị vận chuyển";
+            case DELIVERED -> "Giao hàng thành công";
+            case PENDING -> "Đơn hàng đang chờ xác nhận";
+            case CANCELLED -> "Đơn hàng đã hủy";
+        };
     }
 
     private BigDecimal resolveShippingFee(String shippingMethod, BigDecimal standardFee) {

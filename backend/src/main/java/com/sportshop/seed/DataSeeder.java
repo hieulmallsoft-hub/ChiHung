@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Component
+@org.springframework.core.annotation.Order(1)
 public class DataSeeder implements CommandLineRunner {
 
     private final RoleRepository roleRepository;

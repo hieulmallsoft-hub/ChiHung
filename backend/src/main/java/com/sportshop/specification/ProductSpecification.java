@@ -26,9 +26,28 @@ public final class ProductSpecification {
 
             if (keyword != null && !keyword.isBlank()) {
                 String normalizedKeyword = SlugUtil.normalizeSearch(keyword);
-                predicates.getExpressions().add(
-                        cb.like(cb.lower(root.get("name")), "%" + normalizedKeyword + "%")
-                );
+                String rawKeyword = keyword.trim().toLowerCase();
+                var normalizedTokensPredicate = cb.conjunction();
+                boolean hasNormalizedToken = false;
+                for (String token : normalizedKeyword.split("\\s+")) {
+                    if (!token.isBlank()) {
+                        hasNormalizedToken = true;
+                        String pattern = "%" + token + "%";
+                        normalizedTokensPredicate.getExpressions().add(
+                                cb.like(cb.coalesce(root.get("searchText"), ""), pattern)
+                        );
+                    }
+                }
+                String rawPattern = "%" + rawKeyword + "%";
+                var keywordPredicate = cb.disjunction();
+                if (hasNormalizedToken) {
+                    keywordPredicate.getExpressions().add(normalizedTokensPredicate);
+                }
+                keywordPredicate.getExpressions().add(cb.like(cb.lower(root.get("name")), rawPattern));
+                keywordPredicate.getExpressions().add(cb.like(cb.lower(root.get("sku")), rawPattern));
+                keywordPredicate.getExpressions().add(cb.like(cb.lower(root.get("brand").get("name")), rawPattern));
+                keywordPredicate.getExpressions().add(cb.like(cb.lower(root.get("category").get("name")), rawPattern));
+                predicates.getExpressions().add(keywordPredicate);
             }
             if (categoryId != null) {
                 predicates.getExpressions().add(cb.equal(root.get("category").get("id"), categoryId));
@@ -60,8 +79,10 @@ public final class ProductSpecification {
                         )
                 ));
             }
-            if (Boolean.TRUE.equals(inStock)) {
-                predicates.getExpressions().add(cb.greaterThan(root.get("stockQuantity"), 0));
+            if (inStock != null) {
+                predicates.getExpressions().add(Boolean.TRUE.equals(inStock)
+                        ? cb.greaterThan(root.get("stockQuantity"), 0)
+                        : cb.lessThanOrEqualTo(root.get("stockQuantity"), 0));
             }
             return predicates;
         };

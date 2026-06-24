@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Formula;
+import com.sportshop.util.SlugUtil;
 
 import java.math.BigDecimal;
 
@@ -46,6 +47,9 @@ public class Product extends BaseEntity {
     @Column(length = 500)
     private String shortDescription;
 
+    @Column(length = 1000)
+    private String searchText;
+
     @Column(columnDefinition = "TEXT")
     private String description;
 
@@ -64,4 +68,18 @@ public class Product extends BaseEntity {
 
     @Column(nullable = false)
     private boolean deleted = false;
+
+    @PrePersist
+    @PreUpdate
+    private void updateSearchText() {
+        String categoryName = category == null ? "" : category.getName();
+        String brandName = brand == null ? "" : brand.getName();
+        searchText = SlugUtil.normalizeSearch(String.join(" ",
+                name == null ? "" : name,
+                sku == null ? "" : sku,
+                categoryName,
+                brandName,
+                shortDescription == null ? "" : shortDescription
+        ));
+    }
 }
