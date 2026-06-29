@@ -3,9 +3,12 @@ package com.sportshop.specification;
 import com.sportshop.entity.Product;
 import com.sportshop.enums.ProductStatus;
 import com.sportshop.util.SlugUtil;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public final class ProductSpecification {
@@ -20,43 +23,43 @@ public final class ProductSpecification {
                                                 BigDecimal maxPrice,
                                                 Boolean inStock) {
         return (root, query, cb) -> {
-            var predicates = cb.conjunction();
-            predicates.getExpressions().add(cb.isFalse(root.get("deleted")));
-            predicates.getExpressions().add(cb.equal(root.get("status"), ProductStatus.ACTIVE));
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.isFalse(root.get("deleted")));
+            predicates.add(cb.equal(root.get("status"), ProductStatus.ACTIVE));
 
             if (keyword != null && !keyword.isBlank()) {
                 String normalizedKeyword = SlugUtil.normalizeSearch(keyword);
                 String rawKeyword = keyword.trim().toLowerCase();
-                var normalizedTokensPredicate = cb.conjunction();
-                boolean hasNormalizedToken = false;
+                var paddedSearchText = cb.concat(cb.concat(" ", cb.coalesce(root.get("searchText"), "")), " ");
+                List<Predicate> normalizedTokenPredicates = new ArrayList<>();
                 for (String token : normalizedKeyword.split("\\s+")) {
                     if (!token.isBlank()) {
-                        hasNormalizedToken = true;
-                        String pattern = "%" + token + "%";
-                        normalizedTokensPredicate.getExpressions().add(
-                                cb.like(cb.coalesce(root.get("searchText"), ""), pattern)
-                        );
+                        String pattern = "% " + token + " %";
+                        normalizedTokenPredicates.add(cb.like(paddedSearchText, pattern));
                     }
                 }
-                String rawPattern = "%" + rawKeyword + "%";
-                var keywordPredicate = cb.disjunction();
-                if (hasNormalizedToken) {
-                    keywordPredicate.getExpressions().add(normalizedTokensPredicate);
+                String rawPattern = "% " + rawKeyword + " %";
+                var paddedName = cb.concat(cb.concat(" ", cb.lower(root.get("name"))), " ");
+                var paddedBrandName = cb.concat(cb.concat(" ", cb.lower(root.get("brand").get("name"))), " ");
+                var paddedCategoryName = cb.concat(cb.concat(" ", cb.lower(root.get("category").get("name"))), " ");
+                List<Predicate> keywordPredicates = new ArrayList<>();
+                if (!normalizedTokenPredicates.isEmpty()) {
+                    keywordPredicates.add(cb.and(normalizedTokenPredicates.toArray(Predicate[]::new)));
                 }
-                keywordPredicate.getExpressions().add(cb.like(cb.lower(root.get("name")), rawPattern));
-                keywordPredicate.getExpressions().add(cb.like(cb.lower(root.get("sku")), rawPattern));
-                keywordPredicate.getExpressions().add(cb.like(cb.lower(root.get("brand").get("name")), rawPattern));
-                keywordPredicate.getExpressions().add(cb.like(cb.lower(root.get("category").get("name")), rawPattern));
-                predicates.getExpressions().add(keywordPredicate);
+                keywordPredicates.add(cb.like(paddedName, rawPattern));
+                keywordPredicates.add(cb.like(cb.lower(root.get("sku")), "%" + rawKeyword + "%"));
+                keywordPredicates.add(cb.like(paddedBrandName, rawPattern));
+                keywordPredicates.add(cb.like(paddedCategoryName, rawPattern));
+                predicates.add(cb.or(keywordPredicates.toArray(Predicate[]::new)));
             }
             if (categoryId != null) {
-                predicates.getExpressions().add(cb.equal(root.get("category").get("id"), categoryId));
+                predicates.add(cb.equal(root.get("category").get("id"), categoryId));
             }
             if (brandId != null) {
-                predicates.getExpressions().add(cb.equal(root.get("brand").get("id"), brandId));
+                predicates.add(cb.equal(root.get("brand").get("id"), brandId));
             }
             if (minPrice != null) {
-                predicates.getExpressions().add(cb.or(
+                predicates.add(cb.or(
                         cb.and(
                                 cb.greaterThan(root.<BigDecimal>get("salePrice"), BigDecimal.ZERO),
                                 cb.greaterThanOrEqualTo(root.<BigDecimal>get("salePrice"), minPrice)
@@ -68,7 +71,7 @@ public final class ProductSpecification {
                 ));
             }
             if (maxPrice != null) {
-                predicates.getExpressions().add(cb.or(
+                predicates.add(cb.or(
                         cb.and(
                                 cb.greaterThan(root.<BigDecimal>get("salePrice"), BigDecimal.ZERO),
                                 cb.lessThanOrEqualTo(root.<BigDecimal>get("salePrice"), maxPrice)
@@ -80,11 +83,11 @@ public final class ProductSpecification {
                 ));
             }
             if (inStock != null) {
-                predicates.getExpressions().add(Boolean.TRUE.equals(inStock)
+                predicates.add(Boolean.TRUE.equals(inStock)
                         ? cb.greaterThan(root.get("stockQuantity"), 0)
                         : cb.lessThanOrEqualTo(root.get("stockQuantity"), 0));
             }
-            return predicates;
+            return cb.and(predicates.toArray(Predicate[]::new));
         };
     }
 }
