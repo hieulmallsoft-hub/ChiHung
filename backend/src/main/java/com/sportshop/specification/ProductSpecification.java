@@ -30,26 +30,23 @@ public final class ProductSpecification {
             if (keyword != null && !keyword.isBlank()) {
                 String normalizedKeyword = SlugUtil.normalizeSearch(keyword);
                 String rawKeyword = keyword.trim().toLowerCase();
-                var paddedSearchText = cb.concat(cb.concat(" ", cb.coalesce(root.get("searchText"), "")), " ");
+                var searchText = cb.coalesce(root.<String>get("searchText"), "");
                 List<Predicate> normalizedTokenPredicates = new ArrayList<>();
                 for (String token : normalizedKeyword.split("\\s+")) {
                     if (!token.isBlank()) {
-                        String pattern = "% " + token + " %";
-                        normalizedTokenPredicates.add(cb.like(paddedSearchText, pattern));
+                        normalizedTokenPredicates.add(cb.like(searchText, "%" + token + "%"));
                     }
                 }
-                String rawPattern = "% " + rawKeyword + " %";
-                var paddedName = cb.concat(cb.concat(" ", cb.lower(root.get("name"))), " ");
-                var paddedBrandName = cb.concat(cb.concat(" ", cb.lower(root.get("brand").get("name"))), " ");
-                var paddedCategoryName = cb.concat(cb.concat(" ", cb.lower(root.get("category").get("name"))), " ");
+                String rawPattern = "%" + rawKeyword + "%";
                 List<Predicate> keywordPredicates = new ArrayList<>();
                 if (!normalizedTokenPredicates.isEmpty()) {
                     keywordPredicates.add(cb.and(normalizedTokenPredicates.toArray(Predicate[]::new)));
                 }
-                keywordPredicates.add(cb.like(paddedName, rawPattern));
+                keywordPredicates.add(cb.like(searchText, "%" + normalizedKeyword + "%"));
+                keywordPredicates.add(cb.like(cb.lower(root.get("name")), rawPattern));
                 keywordPredicates.add(cb.like(cb.lower(root.get("sku")), "%" + rawKeyword + "%"));
-                keywordPredicates.add(cb.like(paddedBrandName, rawPattern));
-                keywordPredicates.add(cb.like(paddedCategoryName, rawPattern));
+                keywordPredicates.add(cb.like(cb.lower(root.get("brand").get("name")), rawPattern));
+                keywordPredicates.add(cb.like(cb.lower(root.get("category").get("name")), rawPattern));
                 predicates.add(cb.or(keywordPredicates.toArray(Predicate[]::new)));
             }
             if (categoryId != null) {

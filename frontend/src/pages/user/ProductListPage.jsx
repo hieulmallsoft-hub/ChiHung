@@ -17,6 +17,13 @@ const initialFilter = {
   sortBy: "newest",
 };
 
+const normalizePriceFilter = (value) => {
+  const text = String(value ?? "").trim();
+  if (!text) return "";
+  const numericValue = Number(text);
+  return Number.isFinite(numericValue) && numericValue >= 0 ? numericValue : "";
+};
+
 export default function ProductListPage() {
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
@@ -55,12 +62,31 @@ export default function ProductListPage() {
   }, [filters.keyword]);
 
   const params = useMemo(() => {
-    const p = { ...filters, keyword: debouncedKeyword, page, size: 12 };
+    const p = {
+      page,
+      size: 12,
+      sortBy: filters.sortBy || "newest",
+      keyword: debouncedKeyword.trim(),
+      categoryId: filters.categoryId,
+      brandId: filters.brandId,
+      minPrice: normalizePriceFilter(filters.minPrice),
+      maxPrice: normalizePriceFilter(filters.maxPrice),
+      inStock: filters.inStock,
+    };
     Object.keys(p).forEach((key) => {
       if (p[key] === "") delete p[key];
     });
     return p;
-  }, [filters, debouncedKeyword, page]);
+  }, [
+    debouncedKeyword,
+    filters.categoryId,
+    filters.brandId,
+    filters.minPrice,
+    filters.maxPrice,
+    filters.inStock,
+    filters.sortBy,
+    page,
+  ]);
 
   useEffect(() => {
     const loadProducts = async () => {

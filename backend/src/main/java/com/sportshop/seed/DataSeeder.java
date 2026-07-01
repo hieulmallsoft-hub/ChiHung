@@ -276,7 +276,7 @@ public class DataSeeder implements CommandLineRunner {
             List<String> images = categoryImages.getOrDefault(category.getSlug(), defaultImages);
             String thumbnailUrl = images.get(0);
             product.setThumbnailUrl(thumbnailUrl);
-            product.setStockQuantity(10 + random.nextInt(40));
+            product.setStockQuantity(resolveSeedStock(p[3], random));
             product.setSoldCount(random.nextInt(15));
             product.setStatus(ProductStatus.ACTIVE);
 
@@ -298,6 +298,13 @@ public class DataSeeder implements CommandLineRunner {
         }
 
         return products;
+    }
+
+    private int resolveSeedStock(String sku, Random random) {
+        return switch (sku) {
+            case "SPK-003", "SBD-002", "SGY-001", "SBR-002", "SPT-001" -> 0;
+            default -> 10 + random.nextInt(40);
+        };
     }
 
     private void seedCoupons() {
