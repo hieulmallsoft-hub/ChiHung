@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { MessageCircle, Send, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { adminApi } from "../../api/adminApi";
 import { chatApi } from "../../api/chatApi";
@@ -22,9 +23,11 @@ export default function AdminFloatingChatWidget() {
   const [totalUnread, setTotalUnread] = useState(0);
 
   const stompRef = useRef(null);
+  const adminSubRef = useRef(null);
   const roomSubRef = useRef(null);
   const roomsPollingRef = useRef(null);
   const messagesPollingRef = useRef(null);
+  const messagesEndRef = useRef(null);
   const openRef = useRef(false);
   const unreadInitializedRef = useRef(false);
   const previousUnreadRef = useRef(0);
@@ -69,6 +72,7 @@ export default function AdminFloatingChatWidget() {
       setMessages([]);
       return;
     }
+
     try {
       const response = await chatApi.getMessages(roomId, { page: 0, size: 50 });
       setMessages(response?.data?.data?.content || []);
@@ -112,6 +116,10 @@ export default function AdminFloatingChatWidget() {
   );
 
   useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, open]);
+
+  useEffect(() => {
     if (!user?.email) return;
 
     let active = true;
@@ -121,7 +129,11 @@ export default function AdminFloatingChatWidget() {
     const client = createChatStompClient({
       onConnect: () => {
         if (!active) return;
+
         setStatus("connected");
+        adminSubRef.current = client.subscribe("/topic/admin/chats", () => {
+          loadRooms({ silent: true });
+        });
       },
       onStompError: () => {
         if (active) setStatus("fallback");
@@ -143,8 +155,13 @@ export default function AdminFloatingChatWidget() {
 
     return () => {
       active = false;
+      if (adminSubRef.current) {
+        adminSubRef.current.unsubscribe();
+        adminSubRef.current = null;
+      }
       if (roomSubRef.current) {
         roomSubRef.current.unsubscribe();
+        roomSubRef.current = null;
       }
       if (stompRef.current?.active) {
         stompRef.current.deactivate();
@@ -249,10 +266,11 @@ export default function AdminFloatingChatWidget() {
   if (!open) {
     return (
       <button
+        type="button"
         onClick={() => setOpen(true)}
         className="fixed bottom-6 right-6 z-50 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary-700 to-primary-600 px-5 py-3 text-sm font-semibold text-white shadow-glow transition hover:-translate-y-0.5"
       >
-        <span className="grid h-5 w-5 place-items-center rounded-full bg-white/20 text-[11px]">A</span>
+        <MessageCircle size={18} aria-hidden="true" />
         Chat quản trị
         {totalUnread > 0 && (
           <span className="ml-2 inline-flex min-w-6 items-center justify-center rounded-full bg-white px-1.5 py-0.5 text-xs font-bold text-primary-700">
@@ -264,19 +282,22 @@ export default function AdminFloatingChatWidget() {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-[440px] overflow-hidden rounded-3xl border border-cyan-100 bg-white/95 shadow-2xl backdrop-blur">
+    <div className="fixed bottom-6 right-4 z-50 w-[calc(100vw-2rem)] max-w-[520px] overflow-hidden rounded-2xl border border-cyan-100 bg-white shadow-2xl md:right-6">
       <div className="flex items-center justify-between bg-gradient-to-r from-primary-700 to-primary-600 px-4 py-3 text-white">
-        <p className="font-semibold">Hỗ trợ khách hàng</p>
+        <div>
+          <p className="font-semibold">Hỗ trợ khách hàng</p>
+          <p className="text-[11px] text-cyan-50">Trao đổi trực tiếp với người dùng</p>
+        </div>
         <div className="flex items-center gap-2">
           <span
             className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-              status === "connected" ? "bg-teal-200 text-teal-700" : "bg-amber-200 text-amber-700"
+              status === "connected" ? "bg-teal-100 text-teal-700" : "bg-amber-100 text-amber-700"
             }`}
           >
-            {status === "connected" ? "Thời gian thực" : "Dự phòng"}
+            {status === "connected" ? "Real-time" : "Dự phòng"}
           </span>
-          <button onClick={() => setOpen(false)} className="text-sm">
-            Đóng
+          <button type="button" onClick={() => setOpen(false)} className="rounded-full p-1 transition hover:bg-white/15" aria-label="Đóng chat">
+            <X size={16} aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -285,8 +306,14 @@ export default function AdminFloatingChatWidget() {
         <aside className="border-r border-cyan-100 bg-gradient-to-b from-cyan-50 to-white p-2">
           <div className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Phòng chat</div>
           <div className="space-y-1 overflow-y-auto">
+            {rooms.length === 0 && (
+              <div className="rounded-xl border border-dashed border-cyan-200 bg-white/80 p-3 text-xs text-slate-500">
+                Chưa có cuộc trò chuyện.
+              </div>
+            )}
             {rooms.map((room) => (
               <button
+                type="button"
                 key={room.id}
                 onClick={() => setSelectedRoomId(room.id)}
                 className={`w-full rounded-lg px-2 py-2 text-left text-xs transition ${
@@ -311,7 +338,7 @@ export default function AdminFloatingChatWidget() {
           </div>
         </aside>
 
-        <section className="flex flex-col">
+        <section className="flex min-w-0 flex-col">
           <div className="border-b border-cyan-100 px-3 py-2 text-sm font-semibold text-slate-700">
             {selectedRoom ? `Khách hàng: ${selectedRoom.userName}` : "Chọn phòng để chat"}
           </div>
@@ -323,6 +350,7 @@ export default function AdminFloatingChatWidget() {
               const isDeleted = Boolean(msg.deleted);
               const isEdited = Boolean(msg.editedAt);
               const displayContent = isDeleted ? "Tin nhắn đã bị xóa" : msg.content;
+
               return (
                 <div
                   key={msg.id}
@@ -338,18 +366,20 @@ export default function AdminFloatingChatWidget() {
                 </div>
               );
             })}
+            <div ref={messagesEndRef} />
           </div>
 
           <div className="flex gap-2 border-t border-cyan-100 p-3">
             <input
-              className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm"
+              className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
               value={content}
               onChange={(event) => setContent(event.target.value)}
               onKeyDown={(event) => event.key === "Enter" && sendMessage()}
               placeholder="Nhập phản hồi..."
               disabled={!selectedRoomId}
             />
-            <button className="btn-primary text-sm" onClick={sendMessage} disabled={!selectedRoomId}>
+            <button type="button" className="btn-primary inline-flex items-center gap-2 text-sm" onClick={sendMessage} disabled={!selectedRoomId}>
+              <Send size={16} aria-hidden="true" />
               Gửi
             </button>
           </div>

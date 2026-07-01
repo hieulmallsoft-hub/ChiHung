@@ -1,5 +1,6 @@
 package com.sportshop.config;
 
+import com.sportshop.repository.ChatRoomRepository;
 import com.sportshop.security.CustomUserDetailsService;
 import com.sportshop.security.jwt.JwtService;
 import org.springframework.messaging.Message;
@@ -13,16 +14,24 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Component
 public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
 
+    private static final String CHAT_TOPIC_PREFIX = "/topic/chat/";
+    private static final String ADMIN_TOPIC_PREFIX = "/topic/admin/";
+
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
+    private final ChatRoomRepository chatRoomRepository;
 
     public WebSocketAuthChannelInterceptor(JwtService jwtService,
-                                           CustomUserDetailsService userDetailsService) {
+                                           CustomUserDetailsService userDetailsService,
+                                           ChatRoomRepository chatRoomRepository) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
+        this.chatRoomRepository = chatRoomRepository;
     }
 
     @Override
@@ -44,6 +53,10 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
 
         if ((StompCommand.SEND.equals(command) || StompCommand.SUBSCRIBE.equals(command)) && accessor.getUser() == null) {
             authenticate(accessor);
+        }
+
+        if (StompCommand.SUBSCRIBE.equals(command)) {
+            authorizeSubscription(accessor);
         }
 
         return message;
@@ -77,6 +90,57 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
         accessor.setUser(authentication);
     }
 
+    private void authorizeSubscription(StompHeaderAccessor accessor) {
+        String destination = accessor.getDestination();
+        if (destination == null) {
+            return;
+        }
+
+        UserDetails userDetails = currentUser(accessor);
+        boolean admin = userDetails.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+
+        if (destination.startsWith(ADMIN_TOPIC_PREFIX)) {
+            if (!admin) {
+                throw new AccessDeniedException("Bạn không có quyền theo dõi kênh quản trị");
+            }
+            return;
+        }
+
+        if (!destination.startsWith(CHAT_TOPIC_PREFIX) || admin) {
+            return;
+        }
+
+        UUID roomId = parseRoomId(destination);
+        if (roomId == null || !chatRoomRepository.existsByIdAndUserEmail(roomId, userDetails.getUsername())) {
+            throw new AccessDeniedException("Bạn không có quyền theo dõi phòng chat này");
+        }
+    }
+
+    private UserDetails currentUser(StompHeaderAccessor accessor) {
+        if (accessor.getUser() instanceof UsernamePasswordAuthenticationToken authentication
+                && authentication.getPrincipal() instanceof UserDetails userDetails) {
+            return userDetails;
+        }
+
+        authenticate(accessor);
+        if (accessor.getUser() instanceof UsernamePasswordAuthenticationToken authentication
+                && authentication.getPrincipal() instanceof UserDetails userDetails) {
+            return userDetails;
+        }
+
+        throw new AccessDeniedException("Không thể xác thực websocket");
+    }
+
+    private UUID parseRoomId(String destination) {
+        String rawId = destination.substring(CHAT_TOPIC_PREFIX.length());
+        try {
+            return UUID.fromString(rawId);
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
+    }
+
     private String firstNonBlank(String first, String second) {
         if (first != null && !first.isBlank()) {
             return first;
@@ -87,4 +151,3 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
         return null;
     }
 }
-

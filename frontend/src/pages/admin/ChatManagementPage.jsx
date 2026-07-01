@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { CheckCircle2, Pencil, Send, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { adminApi } from "../../api/adminApi";
 import { chatApi } from "../../api/chatApi";
@@ -23,9 +24,11 @@ export default function ChatManagementPage() {
   const [editingContent, setEditingContent] = useState("");
 
   const stompRef = useRef(null);
+  const adminSubscriptionRef = useRef(null);
   const roomSubscriptionRef = useRef(null);
   const roomPollingRef = useRef(null);
   const messagePollingRef = useRef(null);
+  const messagesEndRef = useRef(null);
 
   const selectedRoom = useMemo(
     () => rooms.find((room) => room.id === selectedRoomId) || null,
@@ -61,6 +64,7 @@ export default function ChatManagementPage() {
       setMessages([]);
       return;
     }
+
     try {
       const response = await chatApi.getMessages(roomId, { page: 0, size: 50 });
       setMessages(response.data?.data?.content || []);
@@ -84,12 +88,16 @@ export default function ChatManagementPage() {
 
       roomSubscriptionRef.current = stompRef.current.subscribe(`/topic/chat/${roomId}`, (frame) => {
         const payload = JSON.parse(frame.body);
-        setMessages((prev) => mergeMessageList(prev, payload));
+        setMessages((previous) => mergeMessageList(previous, payload));
         loadRooms({ silent: true });
       });
     },
     [loadRooms]
   );
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages]);
 
   useEffect(() => {
     let active = true;
@@ -99,7 +107,11 @@ export default function ChatManagementPage() {
     const client = createChatStompClient({
       onConnect: () => {
         if (!active) return;
+
         setStatus("connected");
+        adminSubscriptionRef.current = client.subscribe("/topic/admin/chats", () => {
+          loadRooms({ silent: true });
+        });
       },
       onStompError: () => {
         if (active) setStatus("fallback");
@@ -121,8 +133,13 @@ export default function ChatManagementPage() {
 
     return () => {
       active = false;
+      if (adminSubscriptionRef.current) {
+        adminSubscriptionRef.current.unsubscribe();
+        adminSubscriptionRef.current = null;
+      }
       if (roomSubscriptionRef.current) {
         roomSubscriptionRef.current.unsubscribe();
+        roomSubscriptionRef.current = null;
       }
       if (stompRef.current?.active) {
         stompRef.current.deactivate();
@@ -146,12 +163,15 @@ export default function ChatManagementPage() {
     }
 
     loadMessages(selectedRoomId);
-    chatApi.markRead(selectedRoomId).catch(() => undefined);
+    chatApi
+      .markRead(selectedRoomId)
+      .then(() => loadRooms({ silent: true }))
+      .catch(() => undefined);
 
     if (status === "connected") {
       subscribeRoom(selectedRoomId);
     }
-  }, [selectedRoomId, status, loadMessages, subscribeRoom]);
+  }, [selectedRoomId, status, loadMessages, loadRooms, subscribeRoom]);
 
   useEffect(() => {
     if (messagePollingRef.current) {
@@ -175,13 +195,8 @@ export default function ChatManagementPage() {
     };
   }, [selectedRoomId, status, loadMessages]);
 
-  const selectRoom = async (roomId) => {
-    setSelectedRoomId(roomId);
-  };
-
   const startEdit = (message) => {
-    if (!message || message.deleted) return;
-    if (message.senderId !== user?.id) return;
+    if (!message || message.deleted || message.senderId !== user?.id) return;
     setEditingId(message.id);
     setEditingContent(message.content || "");
   };
@@ -193,9 +208,13 @@ export default function ChatManagementPage() {
 
   const saveEdit = async () => {
     if (!editingId || !editingContent.trim()) return;
+
     try {
       await adminApi.editChatMessage(editingId, { content: editingContent.trim() });
       cancelEdit();
+      if (selectedRoomId) {
+        await loadMessages(selectedRoomId, { silent: true });
+      }
     } catch (error) {
       toast.error(error?.response?.data?.message || "Không thể sửa tin nhắn");
     }
@@ -204,8 +223,12 @@ export default function ChatManagementPage() {
   const deleteMessage = async (messageId) => {
     if (!messageId) return;
     if (!window.confirm("Bạn có chắc muốn xóa tin nhắn này?")) return;
+
     try {
       await adminApi.deleteChatMessage(messageId);
+      if (selectedRoomId) {
+        await loadMessages(selectedRoomId, { silent: true });
+      }
     } catch (error) {
       toast.error(error?.response?.data?.message || "Không thể xóa tin nhắn");
     }
@@ -213,6 +236,7 @@ export default function ChatManagementPage() {
 
   const sendMessage = async () => {
     if (!selectedRoomId || !content.trim()) return;
+
     const messageContent = content.trim();
     try {
       const canUseSocket = status === "connected" && stompRef.current?.connected && !!user?.email;
@@ -228,9 +252,10 @@ export default function ChatManagementPage() {
         const response = await chatApi.sendMessage({ roomId: selectedRoomId, content: messageContent });
         const sentMessage = response?.data?.data;
         if (sentMessage) {
-          setMessages((prev) => mergeMessageList(prev, sentMessage));
+          setMessages((previous) => mergeMessageList(previous, sentMessage));
         }
       }
+
       setContent("");
       await loadRooms({ silent: true });
       await chatApi.markRead(selectedRoomId).catch(() => undefined);
@@ -273,14 +298,14 @@ export default function ChatManagementPage() {
         <div className="mb-4 flex items-center justify-between gap-2">
           <div>
             <h1 className="font-heading text-xl font-bold text-white">Hỗ trợ trực tuyến</h1>
-            <p className="text-xs text-slate-300">Quản lý tất cả cuộc trò chuyện</p>
+            <p className="text-xs text-slate-300">Quản lý tất cả cuộc trò chuyện với khách hàng</p>
           </div>
           <span
             className={`rounded-full px-3 py-1 text-[11px] font-bold ${
               status === "connected" ? "bg-teal-100 text-teal-700" : "bg-amber-100 text-amber-700"
             }`}
           >
-            {status === "connected" ? "Thời gian thực" : "Dự phòng"}
+            {status === "connected" ? "Real-time" : "Dự phòng"}
           </span>
         </div>
 
@@ -294,8 +319,9 @@ export default function ChatManagementPage() {
         <div className="space-y-3 text-sm">
           {filteredRooms.map((room) => (
             <button
+              type="button"
               key={room.id}
-              onClick={() => selectRoom(room.id)}
+              onClick={() => setSelectedRoomId(room.id)}
               className={`w-full rounded-2xl border p-3 text-left transition ${
                 selectedRoomId === room.id ? "border-primary-300 bg-cyan-50 shadow-soft" : "border-cyan-100 bg-white"
               }`}
@@ -323,23 +349,26 @@ export default function ChatManagementPage() {
       <section className="admin-card flex h-[680px] flex-col">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
-          <h2 className="font-heading text-xl font-semibold text-white">
-            {selectedRoom ? `Khách hàng: ${selectedRoom.userName}` : "Chọn phòng để bắt đầu"}
-          </h2>
-          <p className="text-xs text-slate-300">
-            {selectedRoom ? `Trạng thái: ${chatRoomStatusLabels[selectedRoom.status] || selectedRoom.status}` : "Chọn một cuộc trò chuyện để xem chi tiết."}
-          </p>
-        </div>
+            <h2 className="font-heading text-xl font-semibold text-white">
+              {selectedRoom ? `Khách hàng: ${selectedRoom.userName}` : "Chọn phòng để bắt đầu"}
+            </h2>
+            <p className="text-xs text-slate-300">
+              {selectedRoom
+                ? `Trạng thái: ${chatRoomStatusLabels[selectedRoom.status] || selectedRoom.status}`
+                : "Chọn một cuộc trò chuyện để xem chi tiết."}
+            </p>
+          </div>
           {selectedRoom && (
-            <button className="btn-secondary text-xs" onClick={() => resolve(selectedRoom.id)}>
-              Đánh dấu đã xử lý
+            <button type="button" className="btn-secondary inline-flex items-center gap-2 text-xs" onClick={() => resolve(selectedRoom.id)}>
+              <CheckCircle2 size={15} aria-hidden="true" />
+              Đã xử lý
             </button>
           )}
         </div>
 
-        <div className="flex-1 space-y-3 overflow-y-auto rounded-3xl border border-white/10 bg-white/5 p-4">
+        <div className="flex-1 space-y-3 overflow-y-auto rounded-2xl border border-white/10 bg-white/5 p-4">
           {messages.length === 0 && (
-            <p className="text-sm text-slate-500">Chưa có tin nhắn nào trong phòng này.</p>
+            <p className="text-sm text-slate-400">Chưa có tin nhắn nào trong phòng này.</p>
           )}
           {messages.map((msg) => {
             const mine = msg.senderId === user?.id;
@@ -366,13 +395,15 @@ export default function ChatManagementPage() {
                         value={editingContent}
                         onChange={(event) => setEditingContent(event.target.value)}
                         rows={2}
-                        className="w-full text-slate-700"
+                        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-slate-700 outline-none"
                       />
                       <div className="flex gap-2">
-                        <button className="btn-primary text-xs" onClick={saveEdit}>
+                        <button type="button" className="btn-primary inline-flex items-center gap-1 text-xs" onClick={saveEdit}>
+                          <CheckCircle2 size={14} aria-hidden="true" />
                           Lưu
                         </button>
-                        <button className="btn-secondary text-xs" onClick={cancelEdit}>
+                        <button type="button" className="btn-secondary inline-flex items-center gap-1 text-xs" onClick={cancelEdit}>
+                          <X size={14} aria-hidden="true" />
                           Hủy
                         </button>
                       </div>
@@ -387,11 +418,13 @@ export default function ChatManagementPage() {
                   {!isEditing && (
                     <div className="mt-3 flex items-center gap-3 text-[11px] font-semibold opacity-80">
                       {mine && !isDeleted && (
-                        <button className="hover:underline" onClick={() => startEdit(msg)}>
+                        <button type="button" className="inline-flex items-center gap-1 hover:underline" onClick={() => startEdit(msg)}>
+                          <Pencil size={13} aria-hidden="true" />
                           Sửa
                         </button>
                       )}
-                      <button className="hover:underline" onClick={() => deleteMessage(msg.id)}>
+                      <button type="button" className="inline-flex items-center gap-1 hover:underline" onClick={() => deleteMessage(msg.id)}>
+                        <Trash2 size={13} aria-hidden="true" />
                         Xóa
                       </button>
                     </div>
@@ -400,18 +433,20 @@ export default function ChatManagementPage() {
               </div>
             );
           })}
+          <div ref={messagesEndRef} />
         </div>
 
         <div className="mt-4 flex gap-2">
           <input
-            className="admin-input flex-1"
+            className="admin-input min-w-0 flex-1"
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={(event) => setContent(event.target.value)}
             onKeyDown={(event) => event.key === "Enter" && sendMessage()}
             placeholder="Nhập phản hồi..."
             disabled={!selectedRoomId}
           />
-          <button className="btn-primary" onClick={sendMessage} disabled={!selectedRoomId}>
+          <button type="button" className="btn-primary inline-flex items-center gap-2" onClick={sendMessage} disabled={!selectedRoomId}>
+            <Send size={16} aria-hidden="true" />
             Gửi
           </button>
         </div>

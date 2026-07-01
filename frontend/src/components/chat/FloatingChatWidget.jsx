@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { MessageCircle, Send, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { chatApi } from "../../api/chatApi";
 import { createChatStompClient, mergeMessageList } from "../../utils/chatSocket";
@@ -12,45 +13,55 @@ export default function FloatingChatWidget() {
   const [content, setContent] = useState("");
   const [status, setStatus] = useState("idle");
   const [unreadCount, setUnreadCount] = useState(0);
+
   const stompRef = useRef(null);
   const pollingRef = useRef(null);
   const openRef = useRef(false);
+  const messagesEndRef = useRef(null);
 
-  const loadMessages = async (targetRoomId, { silent = false, detectNewAdminMessages = false } = {}) => {
-    try {
-      const messageResponse = await chatApi.getMessages(targetRoomId, { page: 0, size: 50 });
-      const nextMessages = messageResponse.data?.data?.content || [];
+  const loadMessages = useCallback(
+    async (targetRoomId, { silent = false, detectNewAdminMessages = false } = {}) => {
+      try {
+        const messageResponse = await chatApi.getMessages(targetRoomId, { page: 0, size: 50 });
+        const nextMessages = messageResponse.data?.data?.content || [];
 
-      if (detectNewAdminMessages && !openRef.current) {
-        setMessages((previous) => {
-          const previousIds = new Set(previous.map((item) => item.id));
-          const newAdminMessages = nextMessages.filter(
-            (item) => !previousIds.has(item.id) && item.senderId !== user?.id
-          );
+        if (detectNewAdminMessages && !openRef.current) {
+          setMessages((previous) => {
+            const previousIds = new Set(previous.map((item) => item.id));
+            const newAdminMessages = nextMessages.filter(
+              (item) => !previousIds.has(item.id) && item.senderId !== user?.id
+            );
 
-          if (newAdminMessages.length > 0) {
-            setUnreadCount((count) => count + newAdminMessages.length);
-            toast.success("Bạn có tin nhắn mới từ quản trị viên");
-          }
+            if (newAdminMessages.length > 0) {
+              setUnreadCount((count) => count + newAdminMessages.length);
+              toast.success("Bạn có tin nhắn mới từ quản trị viên");
+            }
 
-          return nextMessages;
-        });
-        return;
+            return nextMessages;
+          });
+          return;
+        }
+
+        setMessages(nextMessages);
+      } catch (error) {
+        if (!silent) {
+          toast.error(error?.response?.data?.message || "Không tải được lịch sử chat");
+        }
       }
+    },
+    [user?.id]
+  );
 
-      setMessages(nextMessages);
-    } catch (error) {
-      if (!silent) {
-        toast.error(error?.response?.data?.message || "Không tải được lịch sử chat");
-      }
-    }
-  };
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, open]);
 
   useEffect(() => {
     openRef.current = open;
     if (!open || !roomId) {
       return;
     }
+
     setUnreadCount(0);
     chatApi.markRead(roomId).catch(() => undefined);
   }, [open, roomId]);
@@ -66,12 +77,14 @@ export default function FloatingChatWidget() {
         const roomResponse = await chatApi.openRoom();
         const targetRoomId = roomResponse.data?.data?.id;
         if (!active || !targetRoomId) return;
+
         setRoomId(targetRoomId);
         await loadMessages(targetRoomId, { silent: true });
 
         const client = createChatStompClient({
           onConnect: () => {
             if (!active) return;
+
             setStatus("connected");
             client.subscribe(`/topic/chat/${targetRoomId}`, (frame) => {
               const payload = JSON.parse(frame.body);
@@ -79,10 +92,12 @@ export default function FloatingChatWidget() {
                 const next = mergeMessageList(previous, payload);
                 const isNew = next.length > previous.length;
                 const isFromAdmin = payload?.senderId && payload.senderId !== user?.id;
+
                 if (isNew && isFromAdmin && !openRef.current) {
                   setUnreadCount((count) => count + 1);
                   toast.success("Bạn có tin nhắn mới từ quản trị viên");
                 }
+
                 return next;
               });
             });
@@ -102,6 +117,7 @@ export default function FloatingChatWidget() {
         stompRef.current = client;
       } catch (error) {
         if (!active) return;
+
         setStatus("fallback");
         toast.error(error?.response?.data?.message || "Không thể kết nối chat");
       }
@@ -118,10 +134,11 @@ export default function FloatingChatWidget() {
         clearInterval(pollingRef.current);
       }
     };
-  }, [user?.email]);
+  }, [user?.email, user?.id, loadMessages]);
 
   useEffect(() => {
     if (!roomId) return;
+
     if (status === "connected") {
       if (pollingRef.current) clearInterval(pollingRef.current);
       pollingRef.current = null;
@@ -139,7 +156,7 @@ export default function FloatingChatWidget() {
         pollingRef.current = null;
       }
     };
-  }, [roomId, status, user?.id]);
+  }, [roomId, status, loadMessages]);
 
   const sendMessage = async () => {
     if (!content.trim() || !roomId) return;
@@ -159,22 +176,28 @@ export default function FloatingChatWidget() {
         const response = await chatApi.sendMessage({ roomId, content: messageContent });
         const sentMessage = response?.data?.data;
         if (sentMessage) {
-          setMessages((prev) => mergeMessageList(prev, sentMessage));
+          setMessages((previous) => mergeMessageList(previous, sentMessage));
         }
       }
+
       setContent("");
     } catch {
       toast.error("Gửi tin nhắn thất bại");
     }
   };
 
+  if (!user?.email) {
+    return null;
+  }
+
   if (!open) {
     return (
       <button
+        type="button"
         onClick={() => setOpen(true)}
         className="fixed bottom-6 right-6 z-50 inline-flex items-center gap-2 rounded-full border border-primary-400/20 bg-gradient-to-r from-primary-600 to-primary-700 px-5 py-3 text-sm font-semibold text-white shadow-glow transition hover:-translate-y-0.5"
       >
-        <span className="grid h-5 w-5 place-items-center rounded-full bg-white/20 text-[11px]">...</span>
+        <MessageCircle size={18} aria-hidden="true" />
         Chat hỗ trợ
         {unreadCount > 0 && (
           <span className="ml-2 inline-flex min-w-6 items-center justify-center rounded-full bg-white px-1.5 py-0.5 text-xs font-bold text-primary-700">
@@ -186,23 +209,26 @@ export default function FloatingChatWidget() {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-[360px] overflow-hidden rounded-3xl border border-cyan-100 bg-white/95 shadow-2xl backdrop-blur">
+    <div className="fixed bottom-6 right-4 z-50 w-[calc(100vw-2rem)] max-w-[360px] overflow-hidden rounded-2xl border border-cyan-100 bg-white shadow-2xl md:right-6">
       <div className="flex items-center justify-between bg-gradient-to-r from-primary-700 to-primary-600 px-4 py-3 text-white">
-        <p className="font-semibold">Hỗ trợ trực tuyến</p>
+        <div>
+          <p className="font-semibold">Hỗ trợ trực tuyến</p>
+          <p className="text-[11px] text-cyan-50">Nhắn trực tiếp với quản trị viên</p>
+        </div>
         <div className="flex items-center gap-2">
-          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${status === "connected" ? "bg-teal-200 text-teal-700" : "bg-amber-200 text-amber-700"}`}>
-            {status === "connected" ? "Thời gian thực" : "Dự phòng"}
+          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${status === "connected" ? "bg-teal-100 text-teal-700" : "bg-amber-100 text-amber-700"}`}>
+            {status === "connected" ? "Real-time" : "Dự phòng"}
           </span>
-          <button onClick={() => setOpen(false)} className="text-sm">
-            Đóng
+          <button type="button" onClick={() => setOpen(false)} className="rounded-full p-1 transition hover:bg-white/15" aria-label="Đóng chat">
+            <X size={16} aria-hidden="true" />
           </button>
         </div>
       </div>
 
       <div className="h-80 space-y-2 overflow-y-auto bg-gradient-to-b from-cyan-50 to-white p-3">
         {messages.length === 0 && (
-          <div className="rounded-xl border border-dashed border-cyan-200 bg-white/70 p-3 text-xs text-slate-500">
-            Chào bạn, hãy gửi nội dung để bộ phận hỗ trợ phản hồi ngay.
+          <div className="rounded-xl border border-dashed border-cyan-200 bg-white/80 p-3 text-xs text-slate-500">
+            Gửi nội dung cần hỗ trợ, quản trị viên sẽ phản hồi tại đây.
           </div>
         )}
         {messages.map((msg) => {
@@ -210,6 +236,7 @@ export default function FloatingChatWidget() {
           const isDeleted = Boolean(msg.deleted);
           const isEdited = Boolean(msg.editedAt);
           const displayContent = isDeleted ? "Tin nhắn đã bị xóa" : msg.content;
+
           return (
             <div
               key={msg.id}
@@ -225,6 +252,7 @@ export default function FloatingChatWidget() {
             </div>
           );
         })}
+        <div ref={messagesEndRef} />
       </div>
 
       <div className="flex gap-2 border-t border-cyan-100 p-3">
@@ -232,10 +260,11 @@ export default function FloatingChatWidget() {
           value={content}
           onChange={(event) => setContent(event.target.value)}
           onKeyDown={(event) => event.key === "Enter" && sendMessage()}
-          className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm"
+          className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
           placeholder="Nhập tin nhắn..."
         />
-        <button onClick={sendMessage} className="btn-primary px-4 text-sm">
+        <button type="button" onClick={sendMessage} className="btn-primary inline-flex items-center gap-2 px-4 text-sm">
+          <Send size={16} aria-hidden="true" />
           Gửi
         </button>
       </div>

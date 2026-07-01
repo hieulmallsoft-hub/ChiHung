@@ -123,12 +123,14 @@ public class DataSeeder implements CommandLineRunner {
         room.setAssignedAdmin(admin);
         room.setStatus(ChatRoomStatus.OPEN);
         room.setLastMessageAt(LocalDateTime.now());
+        room.setUnreadAdminCount(1);
+        room.setUnreadUserCount(0);
         room = chatRoomRepository.save(room);
 
         Message msg = new Message();
         msg.setRoom(room);
         msg.setSender(users.get(0));
-        msg.setContent("Xin chao admin, toi can tu van giay chay bo.");
+        msg.setContent("Xin chào admin, tôi cần tư vấn giày chạy bộ.");
         msg.setReadByUser(true);
         msg.setReadByAdmin(false);
         messageRepository.save(msg);

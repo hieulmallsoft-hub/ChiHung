@@ -19,7 +19,11 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, UUID> {
 
     Optional<ChatRoom> findByIdAndUser(UUID id, User user);
 
+    boolean existsByIdAndUserEmail(UUID id, String email);
+
     Page<ChatRoom> findByStatusOrderByLastMessageAtDesc(ChatRoomStatus status, Pageable pageable);
 
     Page<ChatRoom> findByUserFullNameContainingIgnoreCaseOrderByLastMessageAtDesc(String keyword, Pageable pageable);
+
+    Page<ChatRoom> findAllByOrderByLastMessageAtDesc(Pageable pageable);
 }

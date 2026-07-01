@@ -40,10 +40,4 @@ public class ChatRoom extends BaseEntity {
 
     @Column(nullable = false)
     private Integer unreadAdminCount = 0;
-
-    @Column(name = "bot_enabled")
-    private Boolean botEnabled = true;
-
-    @Column(name = "bot_handoff_at")
-    private LocalDateTime botHandoffAt;
 }

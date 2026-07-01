@@ -1,6 +1,5 @@
 package com.sportshop.service.impl;
 
-import com.sportshop.chatbot.ChatUserMessageCreatedEvent;
 import com.sportshop.dto.chat.ChatRoomResponse;
 import com.sportshop.dto.chat.MessageResponse;
 import com.sportshop.dto.chat.SendMessageRequest;
@@ -19,13 +18,12 @@ import com.sportshop.service.ChatService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -36,20 +34,17 @@ public class ChatServiceImpl implements ChatService {
     private final MessageRepository messageRepository;
     private final ChatMapper chatMapper;
     private final SimpMessagingTemplate messagingTemplate;
-    private final ApplicationEventPublisher eventPublisher;
 
     public ChatServiceImpl(UserRepository userRepository,
                            ChatRoomRepository chatRoomRepository,
                            MessageRepository messageRepository,
                            ChatMapper chatMapper,
-                           SimpMessagingTemplate messagingTemplate,
-                           ApplicationEventPublisher eventPublisher) {
+                           SimpMessagingTemplate messagingTemplate) {
         this.userRepository = userRepository;
         this.chatRoomRepository = chatRoomRepository;
         this.messageRepository = messageRepository;
         this.chatMapper = chatMapper;
         this.messagingTemplate = messagingTemplate;
-        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -68,8 +63,8 @@ public class ChatServiceImpl implements ChatService {
             newRoom.setUser(user);
             newRoom.setStatus(ChatRoomStatus.OPEN);
             newRoom.setLastMessageAt(LocalDateTime.now());
-            newRoom.setBotEnabled(true);
             room = chatRoomRepository.save(newRoom);
+            broadcastRoom(room);
         } else {
             room = openRooms.get(0);
 
@@ -108,11 +103,11 @@ public class ChatServiceImpl implements ChatService {
         }
 
         if (status != null && !status.isBlank()) {
-            return chatRoomRepository.findByStatusOrderByLastMessageAtDesc(ChatRoomStatus.valueOf(status), pageable)
+            return chatRoomRepository.findByStatusOrderByLastMessageAtDesc(parseStatus(status), pageable)
                     .map(chatMapper::toRoomResponse);
         }
 
-        return chatRoomRepository.findAll(pageable).map(chatMapper::toRoomResponse);
+        return chatRoomRepository.findAllByOrderByLastMessageAtDesc(pageable).map(chatMapper::toRoomResponse);
     }
 
     @Override
@@ -141,8 +136,6 @@ public class ChatServiceImpl implements ChatService {
 
         if (isAdmin(sender)) {
             room.setAssignedAdmin(sender);
-            room.setBotEnabled(false);
-            room.setBotHandoffAt(LocalDateTime.now());
             room.setUnreadUserCount(room.getUnreadUserCount() + 1);
             message.setReadByAdmin(true);
             message.setReadByUser(false);
@@ -158,10 +151,7 @@ public class ChatServiceImpl implements ChatService {
 
         MessageResponse response = chatMapper.toMessageResponse(message);
         messagingTemplate.convertAndSend("/topic/chat/" + room.getId(), response);
-
-        if (!isAdmin(sender)) {
-            eventPublisher.publishEvent(new ChatUserMessageCreatedEvent(room.getId(), message.getId()));
-        }
+        broadcastRoom(room);
 
         return response;
     }
@@ -184,7 +174,7 @@ public class ChatServiceImpl implements ChatService {
         }
 
         messageRepository.saveAll(messages);
-        chatRoomRepository.save(room);
+        broadcastRoom(chatRoomRepository.save(room));
     }
 
     @Override
@@ -197,7 +187,9 @@ public class ChatServiceImpl implements ChatService {
         room.setResolvedAt(LocalDateTime.now());
         room.setUnreadAdminCount(0);
         room.setUnreadUserCount(0);
-        return chatMapper.toRoomResponse(chatRoomRepository.save(room));
+        ChatRoom saved = chatRoomRepository.save(room);
+        broadcastRoom(saved);
+        return chatMapper.toRoomResponse(saved);
     }
 
     @Override
@@ -247,6 +239,18 @@ public class ChatServiceImpl implements ChatService {
 
     private boolean isAdmin(User user) {
         return user.getRoles().stream().anyMatch(role -> role.getName().name().equals("ROLE_ADMIN"));
+    }
+
+    private ChatRoomStatus parseStatus(String status) {
+        try {
+            return ChatRoomStatus.valueOf(status.trim().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new BadRequestException("Trạng thái phòng chat không hợp lệ");
+        }
+    }
+
+    private void broadcastRoom(ChatRoom room) {
+        messagingTemplate.convertAndSend("/topic/admin/chats", chatMapper.toRoomResponse(room));
     }
 
     private User getUser(String email) {

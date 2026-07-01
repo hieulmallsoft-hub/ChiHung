@@ -20,8 +20,6 @@ public class ChatMapper {
                 .lastMessageAt(room.getLastMessageAt())
                 .unreadUserCount(room.getUnreadUserCount())
                 .unreadAdminCount(room.getUnreadAdminCount())
-                .botEnabled(!Boolean.FALSE.equals(room.getBotEnabled()))
-                .botHandoffAt(room.getBotHandoffAt())
                 .build();
     }
 
