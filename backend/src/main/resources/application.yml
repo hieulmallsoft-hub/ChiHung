@@ -22,6 +22,17 @@ server:
 app:
   frontend-url: http://localhost:5173
   upload-dir: uploads
+  chatbot:
+    enabled: ${CHATBOT_ENABLED:true}
+    bot-email: ${CHATBOT_BOT_EMAIL:gemini-bot@sportshop.vn}
+    bot-name: ${CHATBOT_BOT_NAME:Tro ly Gemini}
+    history-limit: ${CHATBOT_HISTORY_LIMIT:12}
+    product-limit: ${CHATBOT_PRODUCT_LIMIT:20}
+    gemini:
+      api-key: ${GEMINI_API_KEY:}
+      endpoint: ${GEMINI_API_ENDPOINT:https://generativelanguage.googleapis.com/v1beta/interactions}
+      model: ${GEMINI_MODEL:gemini-3.5-flash}
+      timeout-seconds: ${GEMINI_TIMEOUT_SECONDS:25}
   jwt:
     access-token-secret: ${JWT_ACCESS_SECRET:change_this_access_secret_key_please_make_it_long_enough_12345}
     refresh-token-secret: ${JWT_REFRESH_SECRET:change_this_refresh_secret_key_please_make_it_long_enough_67890}

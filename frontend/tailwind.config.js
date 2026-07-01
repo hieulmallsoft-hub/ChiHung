@@ -4,28 +4,28 @@ export default {
   theme: {
     extend: {
       colors: {
-        canvas: "#fff7f8",
-        ink: "#111827",
+        canvas: "#f0f9ff",
+        ink: "#0c4a6e",
         primary: {
-          50: "#fef2f2",
-          100: "#fee2e2",
-          200: "#fecaca",
-          300: "#fca5a5",
-          400: "#f87171",
-          500: "#ef4444",
-          600: "#dc2626",
-          700: "#b91c1c",
-          800: "#991b1b",
-          900: "#7f1d1d",
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          200: '#bae6fd',
+          300: '#7dd3fc',
+          400: '#38bdf8',
+          500: '#0ea5e9',
+          600: '#0284c7',
+          700: '#0369a1',
+          800: '#075985',
+          900: '#0c4a6e',
         },
-        secondary: "#fb7185",
-        accent: "#111827",
-        mist: "#fff1f2",
+        secondary: "#38bdf8",
+        accent: "#0ea5e9",
+        mist: "#e0f2fe",
       },
       boxShadow: {
-        soft: "0 18px 50px rgba(127, 29, 29, 0.11)",
-        glow: "0 18px 40px rgba(220, 38, 38, 0.28)",
-        panel: "0 25px 55px rgba(15, 23, 42, 0.12)",
+        soft: "0 18px 50px rgba(14, 165, 233, 0.11)",
+        glow: "0 18px 40px rgba(2, 132, 199, 0.28)",
+        panel: "0 25px 55px rgba(12, 74, 110, 0.12)",
       },
       fontFamily: {
         heading: ["Outfit", "sans-serif"],
@@ -44,6 +44,9 @@ export default {
           "0%, 100%": { transform: "translateY(0px) translateX(0px)" },
           "50%": { transform: "translateY(-10px) translateX(6px)" },
         },
+        shimmer: {
+          "100%": { transform: "translateX(150%) skewX(-25deg)" }
+        }
       },
       animation: {
         reveal: "reveal 0.5s ease-out forwards",

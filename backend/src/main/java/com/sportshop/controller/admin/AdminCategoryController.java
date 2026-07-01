@@ -23,23 +23,23 @@ public class AdminCategoryController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAll() {
-        return ResponseEntity.ok(ApiResponse.success("Category list", categoryService.getAll()));
+        return ResponseEntity.ok(ApiResponse.success("Danh sách danh mục", categoryService.getAll()));
     }
 
     @PostMapping
     public ResponseEntity<ApiResponse<CategoryResponse>> create(@Valid @RequestBody CategoryRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Category created", categoryService.create(request)));
+        return ResponseEntity.ok(ApiResponse.success("Đã tạo danh mục", categoryService.create(request)));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<CategoryResponse>> update(@PathVariable UUID id,
                                                                 @Valid @RequestBody CategoryRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Category updated", categoryService.update(id, request)));
+        return ResponseEntity.ok(ApiResponse.success("Đã cập nhật danh mục", categoryService.update(id, request)));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
         categoryService.delete(id);
-        return ResponseEntity.ok(ApiResponse.success("Category deleted", null));
+        return ResponseEntity.ok(ApiResponse.success("Đã xóa danh mục", null));
     }
 }

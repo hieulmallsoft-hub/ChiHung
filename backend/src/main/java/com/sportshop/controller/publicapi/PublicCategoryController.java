@@ -22,6 +22,6 @@ public class PublicCategoryController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<CategoryResponse>>> getCategories() {
-        return ResponseEntity.ok(ApiResponse.success("Category list", categoryService.getActiveCategories()));
+        return ResponseEntity.ok(ApiResponse.success("Danh sách danh mục", categoryService.getActiveCategories()));
     }
 }

@@ -25,12 +25,12 @@
   }
 
   *::-webkit-scrollbar-thumb {
-    background: #e11d48; /* rose-600 */
+    background: #0ea5e9; /* cyan-600 */
     border-radius: 9999px;
   }
 
   *::-webkit-scrollbar-thumb:hover {
-    background: #f43f5e; /* rose-500 */
+    background: #38bdf8; /* cyan-500 */
   }
 
   body {
@@ -47,14 +47,14 @@
   }
 
   ::selection {
-    background: #ef4444;
+    background: #0284c7;
     color: #fff;
   }
 
   input,
   select,
   textarea {
-    @apply rounded-xl border border-rose-200/90 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition duration-200 placeholder:text-slate-400 focus:border-primary-500 focus:ring-4 focus:ring-primary-100;
+    @apply rounded-xl border border-cyan-200/90 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition duration-200 placeholder:text-slate-400 focus:border-primary-500 focus:ring-4 focus:ring-primary-100;
   }
 
   input:disabled,
@@ -70,23 +70,23 @@
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-xl border border-rose-200 bg-white/90 px-4 py-2 text-sm font-semibold text-slate-700 transition duration-200 hover:-translate-y-0.5 hover:border-primary-300 hover:bg-rose-50 hover:text-primary-700;
+    @apply inline-flex items-center justify-center rounded-xl border border-cyan-200 bg-white/90 px-4 py-2 text-sm font-semibold text-slate-700 transition duration-200 hover:-translate-y-0.5 hover:border-primary-300 hover:bg-cyan-50 hover:text-primary-700;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold text-primary-700 transition hover:bg-rose-100;
+    @apply inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold text-primary-700 transition hover:bg-cyan-100;
   }
 
   .card {
-    @apply rounded-2xl border border-rose-100/95 bg-white/95 shadow-soft backdrop-blur;
+    @apply rounded-2xl border border-cyan-100/95 bg-white/95 shadow-soft backdrop-blur;
   }
 
   .badge {
-    @apply inline-flex items-center rounded-full bg-rose-100 px-2.5 py-1 text-xs font-semibold text-primary-700;
+    @apply inline-flex items-center rounded-full bg-cyan-100 px-2.5 py-1 text-xs font-semibold text-primary-700;
   }
 
   .table-shell {
-    @apply overflow-hidden rounded-2xl border border-rose-100 bg-white;
+    @apply overflow-hidden rounded-2xl border border-cyan-100 bg-white;
   }
 
   .surface {
@@ -94,11 +94,11 @@
   }
 
   .section-shell {
-    @apply rounded-3xl border border-rose-100/90 bg-white/90 p-5 shadow-soft md:p-7;
+    @apply rounded-3xl border border-cyan-100/90 bg-white/90 p-5 shadow-soft md:p-7;
   }
 
   .label-chip {
-    @apply inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-semibold text-primary-700;
+    @apply inline-flex items-center rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold text-primary-700;
   }
 
   .admin-card {
@@ -110,11 +110,11 @@
   }
 
   .admin-input {
-    @apply w-full rounded-2xl border border-white/15 bg-slate-900/60 px-3 py-2 text-sm text-slate-100 outline-none transition placeholder:text-slate-400 focus:border-rose-400 focus:ring-4 focus:ring-rose-500/20;
+    @apply w-full rounded-2xl border border-white/15 bg-slate-900/60 px-3 py-2 text-sm text-slate-100 outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-500/20;
   }
 
   .admin-select {
-    @apply w-full rounded-2xl border border-white/15 bg-slate-900/60 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-rose-400 focus:ring-4 focus:ring-rose-500/20;
+    @apply w-full rounded-2xl border border-white/15 bg-slate-900/60 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-500/20;
   }
 
   .admin-table {

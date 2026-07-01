@@ -62,10 +62,10 @@ public class CartServiceImpl implements CartService {
         Cart cart = getOrCreateCart(user);
 
         Product product = productRepository.findByIdAndDeletedFalse(request.getProductId())
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm"));
 
         if (product.getStatus() != ProductStatus.ACTIVE || product.getStockQuantity() <= 0) {
-            throw new BadRequestException("Product is out of stock");
+            throw new BadRequestException("Sản phẩm đã hết hàng");
         }
 
         CartItem item = cartItemRepository.findByCartAndProduct(cart, product).orElse(null);
@@ -75,7 +75,7 @@ public class CartServiceImpl implements CartService {
         }
 
         if (newQty > product.getStockQuantity()) {
-            throw new BadRequestException("Requested quantity exceeds stock");
+            throw new BadRequestException("Số lượng yêu cầu vượt quá tồn kho");
         }
 
         if (item == null) {
@@ -98,14 +98,14 @@ public class CartServiceImpl implements CartService {
         Cart cart = getOrCreateCart(user);
 
         CartItem item = cartItemRepository.findById(cartItemId)
-                .orElseThrow(() -> new ResourceNotFoundException("Cart item not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm trong giỏ"));
 
         if (!item.getCart().getId().equals(cart.getId())) {
-            throw new BadRequestException("Invalid cart item");
+            throw new BadRequestException("Sản phẩm trong giỏ không hợp lệ");
         }
 
         if (request.getQuantity() > item.getProduct().getStockQuantity()) {
-            throw new BadRequestException("Requested quantity exceeds stock");
+            throw new BadRequestException("Số lượng yêu cầu vượt quá tồn kho");
         }
 
         item.setQuantity(request.getQuantity());
@@ -122,9 +122,9 @@ public class CartServiceImpl implements CartService {
         Cart cart = getOrCreateCart(user);
 
         CartItem item = cartItemRepository.findById(cartItemId)
-                .orElseThrow(() -> new ResourceNotFoundException("Cart item not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm trong giỏ"));
         if (!item.getCart().getId().equals(cart.getId())) {
-            throw new BadRequestException("Invalid cart item");
+            throw new BadRequestException("Sản phẩm trong giỏ không hợp lệ");
         }
 
         cartItemRepository.delete(item);
@@ -135,7 +135,7 @@ public class CartServiceImpl implements CartService {
     @Transactional
     public CartResponse applyCoupon(String email, String couponCode) {
         if (couponCode == null || couponCode.isBlank()) {
-            throw new BadRequestException("Coupon code is required");
+            throw new BadRequestException("Vui lòng nhập mã giảm giá");
         }
 
         User user = getUser(email);
@@ -143,7 +143,7 @@ public class CartServiceImpl implements CartService {
         Coupon coupon = getValidCoupon(couponCode);
 
         if (cartItemRepository.findByCart(cart).isEmpty()) {
-            throw new BadRequestException("Cannot apply coupon for empty cart");
+            throw new BadRequestException("Không thể áp dụng mã giảm giá cho giỏ hàng trống");
         }
 
         cart.setAppliedCouponCode(coupon.getCode());
@@ -212,18 +212,18 @@ public class CartServiceImpl implements CartService {
 
     private Coupon getValidCoupon(String code) {
         Coupon coupon = couponRepository.findByCodeIgnoreCaseAndActiveTrue(code)
-                .orElseThrow(() -> new BadRequestException("Coupon not found"));
+                .orElseThrow(() -> new BadRequestException("Không tìm thấy mã giảm giá"));
 
         LocalDateTime now = LocalDateTime.now();
         if (coupon.getStartAt() != null && coupon.getStartAt().isAfter(now)) {
-            throw new BadRequestException("Coupon is not active yet");
+            throw new BadRequestException("Mã giảm giá chưa có hiệu lực");
         }
         if (coupon.getEndAt() != null && coupon.getEndAt().isBefore(now)) {
-            throw new BadRequestException("Coupon is expired");
+            throw new BadRequestException("Mã giảm giá đã hết hạn");
         }
         if (coupon.getUsageLimit() != null && coupon.getUsageLimit() > 0
                 && coupon.getUsageCount() >= coupon.getUsageLimit()) {
-            throw new BadRequestException("Coupon reached usage limit");
+            throw new BadRequestException("Mã giảm giá đã đạt giới hạn sử dụng");
         }
 
         return coupon;
@@ -306,7 +306,7 @@ public class CartServiceImpl implements CartService {
 
     private User getUser(String email) {
         return userRepository.findByEmailAndDeletedFalse(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
     }
 
     public record PricingResult(BigDecimal subtotal,

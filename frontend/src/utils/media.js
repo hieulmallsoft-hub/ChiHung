@@ -41,7 +41,7 @@ export function buildProductPlaceholder(label = "SportShop") {
     <svg xmlns="http://www.w3.org/2000/svg" width="900" height="700" viewBox="0 0 900 700">
       <defs>
         <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#ef4444"/>
+          <stop offset="0%" stop-color="#0284c7"/>
           <stop offset="100%" stop-color="#7f1d1d"/>
         </linearGradient>
       </defs>

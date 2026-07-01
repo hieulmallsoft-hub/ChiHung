@@ -14,9 +14,9 @@ export default function ForgotPasswordPage() {
       setSubmitting(true);
       await authApi.forgotPassword({ email });
       setSent(true);
-      toast.success("Da gui yeu cau khoi phuc mat khau");
+      toast.success("Đã gửi yêu cầu khôi phục mật khẩu");
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Khong the gui yeu cau");
+      toast.error(error?.response?.data?.message || "Không thể gửi yêu cầu");
     } finally {
       setSubmitting(false);
     }
@@ -24,14 +24,14 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="mx-auto max-w-xl card p-6 md:p-8">
-      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary-700">Account recovery</p>
-      <h1 className="mt-2 font-heading text-2xl font-bold text-slate-900">Quen mat khau</h1>
+      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary-700">Khôi phục tài khoản</p>
+      <h1 className="mt-2 font-heading text-2xl font-bold text-slate-900">Quên mật khẩu</h1>
       <p className="mt-2 text-sm text-slate-600">
-        Nhap email tai khoan, he thong se tao ma reset va gui huong dan neu email ton tai.
+        Nhập email tài khoản, hệ thống sẽ tạo mã đặt lại và gửi hướng dẫn nếu email tồn tại.
       </p>
 
       {sent ? (
-        <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+        <div className="mt-5 rounded-2xl border border-teal-200 bg-teal-50 p-4 text-sm text-teal-800">
           Yeu cau da duoc ghi nhan. Kiem tra email hoac dung token reset do backend tra ve trong moi truong demo.
         </div>
       ) : (
@@ -45,17 +45,17 @@ export default function ForgotPasswordPage() {
             className="w-full"
           />
           <button className="btn-primary w-full" type="submit" disabled={submitting}>
-            {submitting ? "Dang gui..." : "Gui yeu cau"}
+            {submitting ? "Đang gửi..." : "Gửi yêu cầu"}
           </button>
         </form>
       )}
 
       <div className="mt-4 flex flex-wrap gap-3 text-sm">
         <Link to="/reset-password" className="font-semibold text-primary-700 hover:text-primary-600">
-          Toi da co ma reset
+          Tôi đã có mã đặt lại
         </Link>
         <Link to="/login" className="font-semibold text-slate-500 hover:text-primary-600">
-          Quay lai dang nhap
+          Quay lại đăng nhập
         </Link>
       </div>
     </div>

@@ -30,8 +30,8 @@ export default function CheckoutPage() {
   const cartItems = cart?.items || [];
   const hasCartItems = cartItems.length > 0;
   const shippingOptions = [
-    { id: "STANDARD", label: "Tieu chuan", description: "2-4 ngay lam viec", fee: Number(cart?.shippingFee || 0) },
-    { id: "EXPRESS", label: "Hoa toc", description: "Trong ngay tai noi thanh", fee: Number(cart?.shippingFee || 0) + 25000 },
+    { id: "STANDARD", label: "Tiêu chuẩn", description: "2-4 ngày làm việc", fee: Number(cart?.shippingFee || 0) },
+    { id: "EXPRESS", label: "Hỏa tốc", description: "Trong ngày tại nội thành", fee: Number(cart?.shippingFee || 0) + 25000 },
   ];
   const selectedShipping = shippingOptions.find((item) => item.id === form.shippingMethod) || shippingOptions[0];
   const payableTotal = Math.max(0, Number(cart?.total || 0) + selectedShipping.fee - Number(cart?.shippingFee || 0));
@@ -50,7 +50,7 @@ export default function CheckoutPage() {
         setAddresses(list);
         if (list[0]) setForm((prev) => ({ ...prev, addressId: list[0].id }));
       } catch (error) {
-        toast.error(error?.response?.data?.message || "Khong tai duoc danh sach dia chi");
+        toast.error(error?.response?.data?.message || "Không tải được danh sách địa chỉ");
       } finally {
         setLoadingAddress(false);
       }
@@ -107,9 +107,9 @@ export default function CheckoutPage() {
       setAddresses(next);
       setForm((prev) => ({ ...prev, addressId: newAddress.id }));
       setAddressForm(initialAddressForm);
-      toast.success("Da them dia chi moi");
+      toast.success("Đã thêm địa chỉ mới");
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Khong tao duoc dia chi");
+      toast.error(error?.response?.data?.message || "Không tạo được địa chỉ");
     } finally {
       setAddingAddress(false);
     }
@@ -128,12 +128,12 @@ export default function CheckoutPage() {
 
   const submitCheckout = async () => {
     if (!hasCartItems) {
-      toast.error("Gio hang dang trong");
+      toast.error("Giỏ hàng đang trống");
       return;
     }
 
     if (!form.addressId) {
-      toast.error("Vui long chon dia chi");
+      toast.error("Vui lòng chọn địa chỉ");
       return;
     }
 
@@ -146,25 +146,25 @@ export default function CheckoutPage() {
         shippingMethod: form.shippingMethod,
         note: `[${selectedShipping.label}] ${form.note || ""}`.trim(),
       });
-      toast.success("Dat hang thanh cong");
+      toast.success("Đặt hàng thành công");
       await refreshCart();
       navigate(`/orders/${response.data.data.id}`);
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Khong the dat hang");
+      toast.error(error?.response?.data?.message || "Không thể đặt hàng");
     } finally {
       setSubmitting(false);
     }
   };
 
   if (cartLoading) {
-    return <LoadingSpinner text="Dang tai gio hang..." />;
+    return <LoadingSpinner text="Đang tải giỏ hàng..." />;
   }
 
   if (!hasCartItems) {
     return (
       <EmptyState
-        title="Gio hang trong"
-        description="Hay them san pham vao gio truoc khi thanh toan."
+        title="Giỏ hàng trống"
+        description="Hãy thêm sản phẩm vào giỏ trước khi thanh toán."
       />
     );
   }
@@ -172,17 +172,17 @@ export default function CheckoutPage() {
   return (
     <div className="grid gap-5 lg:grid-cols-[2fr,1fr]">
       <section className="card space-y-4 p-5">
-        <h1 className="font-heading text-2xl font-bold text-slate-900">Thong tin thanh toan</h1>
+        <h1 className="font-heading text-2xl font-bold text-slate-900">Thông tin thanh toán</h1>
 
         <div>
-          <label className="mb-1 block text-sm font-semibold">Dia chi nhan hang</label>
+          <label className="mb-1 block text-sm font-semibold">Địa chỉ nhận hàng</label>
           <select
             value={form.addressId}
             onChange={(event) => setForm((prev) => ({ ...prev, addressId: event.target.value }))}
             disabled={loadingAddress || addresses.length === 0}
           >
             {addresses.length === 0 ? (
-              <option value="">Chua co dia chi, vui long them moi ben duoi</option>
+              <option value="">Chưa có địa chỉ, vui lòng thêm mới bên dưới</option>
             ) : (
               addresses.map((address) => (
                 <option value={address.id} key={address.id}>
@@ -193,28 +193,28 @@ export default function CheckoutPage() {
           </select>
           {addressLabel && (
             <p className="mt-2 text-xs text-slate-500">
-              Dia chi dang chon: {addressLabel.receiverName} - {addressLabel.line1}, {addressLabel.city}
+              Địa chỉ đang chọn: {addressLabel.receiverName} - {addressLabel.line1}, {addressLabel.city}
             </p>
           )}
         </div>
 
-        <form onSubmit={createAddress} className="rounded-2xl border border-rose-100 bg-rose-50 p-4">
-          <p className="mb-3 font-semibold text-slate-800">Them dia chi moi</p>
+        <form onSubmit={createAddress} className="rounded-2xl border border-cyan-100 bg-cyan-50 p-4">
+          <p className="mb-3 font-semibold text-slate-800">Thêm địa chỉ mới</p>
           <div className="grid gap-3 md:grid-cols-2">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-600">Ten nguoi nhan</label>
+              <label className="text-xs font-semibold text-slate-600">Tên người nhận</label>
               <input
                 required
-                placeholder="Ten nguoi nhan"
+                placeholder="Tên người nhận"
                 value={addressForm.receiverName}
                 onChange={(event) => setAddressForm((prev) => ({ ...prev, receiverName: event.target.value }))}
               />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-600">So dien thoai</label>
+              <label className="text-xs font-semibold text-slate-600">Số điện thoại</label>
               <input
                 required
-                placeholder="So dien thoai"
+                placeholder="Số điện thoại"
                 type="tel"
                 inputMode="numeric"
                 pattern="[0-9]*"
@@ -226,21 +226,21 @@ export default function CheckoutPage() {
             </div>
             <input
               required
-              placeholder="Dia chi cu the"
+              placeholder="Địa chỉ cụ thể"
               className="md:col-span-2"
               value={addressForm.line1}
               onChange={(event) => setAddressForm((prev) => ({ ...prev, line1: event.target.value }))}
             />
             {(loadingSuggest || suggestions.length > 0) && (
-              <div className="md:col-span-2 rounded-2xl border border-rose-100 bg-white p-2 shadow-soft">
-                {loadingSuggest && <p className="px-2 py-1 text-xs text-slate-500">Dang tim dia chi...</p>}
+              <div className="md:col-span-2 rounded-2xl border border-cyan-100 bg-white p-2 shadow-soft">
+                {loadingSuggest && <p className="px-2 py-1 text-xs text-slate-500">Đang tìm địa chỉ...</p>}
                 {!loadingSuggest &&
                   suggestions.map((item) => (
                     <button
                       key={item.place_id}
                       type="button"
                       onClick={() => applySuggestion(item)}
-                      className="w-full rounded-xl px-2 py-2 text-left text-xs text-slate-700 hover:bg-rose-50"
+                      className="w-full rounded-xl px-2 py-2 text-left text-xs text-slate-700 hover:bg-cyan-50"
                     >
                       {item.display_name}
                     </button>
@@ -249,26 +249,26 @@ export default function CheckoutPage() {
             )}
             <input
               required
-              placeholder="Thanh pho"
+              placeholder="Thành phố"
               value={addressForm.city}
               onChange={(event) => setAddressForm((prev) => ({ ...prev, city: event.target.value }))}
             />
             <input
-              placeholder="Quoc gia"
+              placeholder="Quốc gia"
               value={addressForm.country}
               onChange={(event) => setAddressForm((prev) => ({ ...prev, country: event.target.value }))}
             />
           </div>
           <button className="btn-secondary mt-3" type="submit" disabled={addingAddress}>
-            {addingAddress ? "Dang them..." : "Luu dia chi"}
+            {addingAddress ? "Đang thêm..." : "Lưu địa chỉ"}
           </button>
         </form>
 
         <div>
-          <label className="mb-1 block text-sm font-semibold">Phuong thuc thanh toan</label>
+          <label className="mb-1 block text-sm font-semibold">Phương thức thanh toán</label>
           <div className="grid gap-3 md:grid-cols-3">
             {[
-              { id: "COD", title: "COD", desc: "Thanh toan khi nhan hang" },
+              { id: "COD", title: "COD", desc: "Thanh toán khi nhận hàng" },
               { id: "BANK_TRANSFER", title: "Chuyen khoan", desc: "Xac nhan thu cong boi admin" },
               { id: "E_WALLET_MOCK", title: "Vi dien tu", desc: "San sang gan VNPay/Momo khi co key" },
             ].map((item) => (
@@ -277,7 +277,7 @@ export default function CheckoutPage() {
                 type="button"
                 onClick={() => setForm((prev) => ({ ...prev, paymentMethod: item.id }))}
                 className={`rounded-2xl border p-3 text-left text-sm transition ${
-                  form.paymentMethod === item.id ? "border-primary-500 bg-rose-50 shadow-soft" : "border-rose-100 bg-white hover:border-primary-300"
+                  form.paymentMethod === item.id ? "border-primary-500 bg-cyan-50 shadow-soft" : "border-cyan-100 bg-white hover:border-primary-300"
                 }`}
               >
                 <p className="font-semibold text-slate-900">{item.title}</p>
@@ -287,13 +287,13 @@ export default function CheckoutPage() {
           </div>
           {form.paymentMethod === "E_WALLET_MOCK" && (
             <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700">
-              Chua cau hinh merchant key, nen don se duoc ghi nhan o che do vi dien tu demo.
+              Chưa cấu hình khóa merchant, nên đơn sẽ được ghi nhận ở chế độ ví điện tử demo.
             </p>
           )}
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-semibold">Phuong thuc giao hang</label>
+          <label className="mb-1 block text-sm font-semibold">Phương thức giao hàng</label>
           <div className="grid gap-3 md:grid-cols-2">
             {shippingOptions.map((item) => (
               <button
@@ -301,7 +301,7 @@ export default function CheckoutPage() {
                 type="button"
                 onClick={() => setForm((prev) => ({ ...prev, shippingMethod: item.id }))}
                 className={`rounded-2xl border p-3 text-left text-sm transition ${
-                  form.shippingMethod === item.id ? "border-primary-500 bg-rose-50 shadow-soft" : "border-rose-100 bg-white hover:border-primary-300"
+                  form.shippingMethod === item.id ? "border-primary-500 bg-cyan-50 shadow-soft" : "border-cyan-100 bg-white hover:border-primary-300"
                 }`}
               >
                 <p className="font-semibold text-slate-900">{item.label}</p>
@@ -313,11 +313,11 @@ export default function CheckoutPage() {
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-semibold">Ma giam gia</label>
+          <label className="mb-1 block text-sm font-semibold">Mã giảm giá</label>
           <input
             value={form.couponCode}
             onChange={(event) => setForm((prev) => ({ ...prev, couponCode: event.target.value.toUpperCase() }))}
-            placeholder="Nhap ma neu chua ap dung trong gio hang"
+            placeholder="Nhập mã nếu chưa áp dụng trong giỏ hàng"
             className="w-full"
           />
         </div>
@@ -333,7 +333,7 @@ export default function CheckoutPage() {
       </section>
 
       <aside className="card space-y-3 p-5">
-        <h2 className="font-heading text-xl font-bold text-slate-900">Thong tin don hang</h2>
+        <h2 className="font-heading text-xl font-bold text-slate-900">Thông tin đơn hàng</h2>
         <div className="space-y-2">
           {cartItems.map((item) => (
             <div key={item.id} className="flex justify-between gap-3 text-xs text-slate-600">
@@ -342,12 +342,12 @@ export default function CheckoutPage() {
             </div>
           ))}
         </div>
-        <p className="flex justify-between text-sm"><span>Tam tinh</span><span>{Number(cart?.subtotal || 0).toLocaleString()} VND</span></p>
+        <p className="flex justify-between text-sm"><span>Tạm tính</span><span>{Number(cart?.subtotal || 0).toLocaleString()} VND</span></p>
         <p className="flex justify-between text-sm"><span>Phi ship</span><span>{selectedShipping.fee.toLocaleString()} VND</span></p>
-        <p className="flex justify-between text-sm"><span>Giam gia</span><span>- {Number(cart?.discount || 0).toLocaleString()} VND</span></p>
-        <p className="flex justify-between border-t border-rose-200 pt-2 text-lg font-bold text-primary-700"><span>Thanh toan</span><span>{payableTotal.toLocaleString()} VND</span></p>
+        <p className="flex justify-between text-sm"><span>Giảm giá</span><span>- {Number(cart?.discount || 0).toLocaleString()} VND</span></p>
+        <p className="flex justify-between border-t border-cyan-200 pt-2 text-lg font-bold text-primary-700"><span>Thanh toán</span><span>{payableTotal.toLocaleString()} VND</span></p>
         <button className="btn-primary w-full" onClick={submitCheckout} disabled={submitting || loadingAddress}>
-          {submitting ? "Dang xu ly..." : "Xac nhan dat hang"}
+          {submitting ? "Đang xử lý..." : "Xác nhận đặt hàng"}
         </button>
       </aside>
     </div>

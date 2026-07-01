@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { adminApi } from "../../api/adminApi";
 
@@ -10,6 +10,15 @@ const nextStatuses = {
   SHIPPING: ["DELIVERED"],
   DELIVERED: [],
   CANCELLED: [],
+};
+
+const statusLabels = {
+  PENDING: "Chờ xác nhận",
+  CONFIRMED: "Đã xác nhận",
+  PROCESSING: "Đang xử lý",
+  SHIPPING: "Đang giao",
+  DELIVERED: "Đã giao",
+  CANCELLED: "Đã hủy",
 };
 
 export default function OrderManagementPage() {
@@ -36,7 +45,7 @@ export default function OrderManagementPage() {
     const currentStatus = orders.find((order) => order.id === id)?.status;
     if (!currentStatus || currentStatus === status) return;
     if (currentStatus === "CANCELLED" || currentStatus === "DELIVERED") {
-      toast.error("Don hang da hoan tat, khong the cap nhat");
+      toast.error("Đơn hàng đã hoàn tất, không thể cập nhật");
       return;
     }
     const previousStatus = orders.find((order) => order.id === id)?.status;
@@ -50,9 +59,9 @@ export default function OrderManagementPage() {
       if (statusFilter && updated.status !== statusFilter) {
         setOrders((prev) => prev.filter((order) => order.id !== id));
       }
-      toast.success("Da cap nhat trang thai");
+      toast.success("Đã cập nhật trạng thái");
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Khong the cap nhat trang thai");
+      toast.error(error?.response?.data?.message || "Không thể cập nhật trạng thái");
       if (previousStatus) {
         setOrders((prev) => prev.map((order) => (order.id === id ? { ...order, status: previousStatus } : order)));
       } else {
@@ -71,8 +80,8 @@ export default function OrderManagementPage() {
     <div className="admin-card">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-rose-200">Orders</p>
-          <h1 className="mt-2 font-heading text-2xl font-bold text-white">Order Management</h1>
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-200">Đơn hàng</p>
+          <h1 className="mt-2 font-heading text-2xl font-bold text-white">Quản lý đơn hàng</h1>
           <p className="mt-1 text-sm text-slate-300">Chỉ chuyển trạng thái theo đúng quy trình xử lý đơn hàng.</p>
         </div>
         <div className="flex gap-2">
@@ -83,10 +92,10 @@ export default function OrderManagementPage() {
             placeholder="Mã đơn, tên, SĐT"
           />
           <select className="admin-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <option value="">Tat ca</option>
-            {statuses.map((status) => <option key={status} value={status}>{status}</option>)}
+            <option value="">Tất cả</option>
+            {statuses.map((status) => <option key={status} value={status}>{statusLabels[status]}</option>)}
           </select>
-          <button className="btn-secondary border-white/20 bg-white/10 text-white hover:bg-white/20" onClick={loadOrders}>Loc</button>
+          <button className="btn-secondary border-white/20 bg-white/10 text-white hover:bg-white/20" onClick={loadOrders}>Lọc</button>
         </div>
       </div>
 
@@ -98,13 +107,13 @@ export default function OrderManagementPage() {
                 <p className="font-semibold text-white">{order.orderCode}</p>
                 <p className="text-xs text-slate-400">{order.receiverName} - {order.receiverPhone}</p>
               </div>
-              <p className="font-semibold text-rose-200">{Number(order.finalTotal).toLocaleString()} VND</p>
+              <p className="font-semibold text-cyan-200">{Number(order.finalTotal).toLocaleString()} VND</p>
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              <span className="admin-pill">Current: {order.status}</span>
+              <span className="admin-pill">Hiện tại: {statusLabels[order.status] || order.status}</span>
               {(order.status === "CANCELLED" || order.status === "DELIVERED") && (
-                <span className="rounded-full border border-emerald-300/40 bg-emerald-400/10 px-3 py-1 text-[11px] font-semibold text-emerald-100">
-                  Finalized
+                <span className="rounded-full border border-teal-300/40 bg-teal-400/10 px-3 py-1 text-[11px] font-semibold text-teal-100">
+                  Đã hoàn tất
                 </span>
               )}
               {statuses.map((status) => {
@@ -122,11 +131,11 @@ export default function OrderManagementPage() {
                         ? "border-rose-300 bg-rose-400/20 text-rose-100 shadow-soft"
                         : isFinalized || !isAllowed
                           ? "border-white/5 bg-white/5 text-slate-500 opacity-40"
-                          : "border-white/10 bg-white/5 text-slate-300 opacity-60 hover:opacity-100 hover:border-rose-400 hover:text-white"
+                          : "border-white/10 bg-white/5 text-slate-300 opacity-60 hover:opacity-100 hover:border-cyan-400 hover:text-white"
                     }`}
                     onClick={() => updateStatus(order.id, status)}
                   >
-                    {status}
+                    {statusLabels[status]}
                   </button>
                 );
               })}

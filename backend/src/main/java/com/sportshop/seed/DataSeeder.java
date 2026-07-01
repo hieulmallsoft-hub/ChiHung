@@ -83,7 +83,7 @@ public class DataSeeder implements CommandLineRunner {
         List<User> users = new ArrayList<>();
         for (int i = 1; i <= 10; i++) {
             users.add(createUser(
-                    "User Demo " + i,
+                    "Người dùng Demo " + i,
                     "user" + i + "@sportshop.vn",
                     "user123",
                     "09100000" + String.format("%02d", i),
@@ -106,10 +106,10 @@ public class DataSeeder implements CommandLineRunner {
             address.setUser(user);
             address.setReceiverName(user.getFullName());
             address.setReceiverPhone(user.getPhone());
-            address.setLine1("123 Duong Nguyen Trai");
-            address.setCity("Ho Chi Minh");
-            address.setState("Quan 1");
-            address.setCountry("Vietnam");
+            address.setLine1("123 Đường Nguyễn Trãi");
+            address.setCity("Hồ Chí Minh");
+            address.setState("Quận 1");
+            address.setCountry("Việt Nam");
             address.setDefaultAddress(true);
             addressRepository.save(address);
         }
@@ -152,7 +152,7 @@ public class DataSeeder implements CommandLineRunner {
                     }
                     return user;
                 })
-                .orElseGet(() -> createUser("Admin System", "admin@sportshop.vn", "admin123", "0900000000", Set.of(adminRole)));
+                .orElseGet(() -> createUser("Quản trị hệ thống", "admin@sportshop.vn", "admin123", "0900000000", Set.of(adminRole)));
     }
 
     private User createUser(String fullName, String email, String rawPassword, String phone, Set<Role> roles) {
@@ -169,12 +169,12 @@ public class DataSeeder implements CommandLineRunner {
 
     private List<Category> seedCategories() {
         String[][] data = {
-                {"Pickleball", "San pham cho bo mon pickleball"},
-                {"Cau Long", "Vot, giay, quan ao cau long"},
-                {"Bong Da", "Do the thao bong da"},
-                {"Gym", "Dung cu va trang phuc gym"},
-                {"Chay Bo", "Giay va phu kien running"},
-                {"Bong Ro", "Banh, giay, do tap bong ro"}
+                {"Pickleball", "Sản phẩm cho bộ môn pickleball"},
+                {"Cầu lông", "Vợt, giày, quần áo cầu lông"},
+                {"Bóng đá", "Đồ thể thao bóng đá"},
+                {"Gym", "Dụng cụ và trang phục gym"},
+                {"Chạy bộ", "Giày và phụ kiện running"},
+                {"Bóng rổ", "Bóng, giày, đồ tập bóng rổ"}
         };
 
         List<Category> categories = new ArrayList<>();
@@ -195,7 +195,7 @@ public class DataSeeder implements CommandLineRunner {
             Brand brand = new Brand();
             brand.setName(name);
             brand.setSlug(SlugUtil.toSlug(name));
-            brand.setDescription("Thuong hieu " + name + " cho do the thao");
+            brand.setDescription("Thương hiệu " + name + " cho đồ thể thao");
             brands.add(brandRepository.save(brand));
         }
         return brands;
@@ -231,32 +231,32 @@ public class DataSeeder implements CommandLineRunner {
         List<String> defaultImages = categoryImages.get("gym");
 
         List<String[]> raw = List.of(
-                new String[]{"Vot Pickleball Carbon Pro", "1290000", "1090000", "SPK-001", "0", "6"},
-                new String[]{"Set Bong Pickleball 3 Qua", "220000", "190000", "SPK-002", "0", "6"},
-                new String[]{"Giay Pickleball Grip Max", "1790000", "1590000", "SPK-003", "0", "0"},
-                new String[]{"Vot Cau Long Yonex Astrox 77", "3290000", "2990000", "SCL-001", "1", "2"},
-                new String[]{"Ao Cau Long Dry Fit", "390000", "320000", "SCL-002", "1", "1"},
-                new String[]{"Giay Cau Long Chuyen Dung", "1490000", "1290000", "SCL-003", "1", "5"},
-                new String[]{"Bong Da FIFA Size 5", "520000", "450000", "SBD-001", "2", "7"},
-                new String[]{"Giay Da Bong San Co Nhan Tao", "1890000", "1650000", "SBD-002", "2", "0"},
-                new String[]{"Ao Dau CLB Mau Do", "690000", "590000", "SBD-003", "2", "1"},
-                new String[]{"Gang Tay Thu Mon Pro", "790000", "690000", "SBD-004", "2", "1"},
-                new String[]{"Ao Ba Lo Gym Compression", "350000", "290000", "SGY-001", "3", "0"},
-                new String[]{"Quan Gym Co Gian 4 Chieu", "420000", "350000", "SGY-002", "3", "1"},
-                new String[]{"Day Khang Luc 5 Muc", "450000", "390000", "SGY-003", "3", "3"},
-                new String[]{"Binh Nuoc Gym 1L", "150000", "120000", "SGY-004", "3", "4"},
-                new String[]{"Giay Running Asics Gel", "2490000", "2190000", "SRN-001", "4", "4"},
-                new String[]{"Dong Ho Chay Bo GPS Mock", "1990000", "1690000", "SRN-002", "4", "6"},
-                new String[]{"Tat Chay Bo Chuyen Dung", "180000", "150000", "SRN-003", "4", "2"},
-                new String[]{"Tui Deo Bung Running", "260000", "220000", "SRN-004", "4", "6"},
-                new String[]{"Bong Ro Molten BG5000", "1850000", "1650000", "SBR-001", "5", "7"},
-                new String[]{"Giay Bong Ro Co Cao", "2690000", "2390000", "SBR-002", "5", "0"},
-                new String[]{"Bang Bao Ve Dau Goi", "290000", "250000", "SBR-003", "5", "3"},
-                new String[]{"Ao Tanktop Bong Ro", "480000", "420000", "SBR-004", "5", "1"},
-                new String[]{"Quan The Thao Da Nang", "430000", "350000", "SPT-001", "3", "0"},
-                new String[]{"Balo The Thao Chong Nuoc", "850000", "760000", "SPT-002", "4", "1"},
-                new String[]{"Khan Lanh The Thao", "120000", "95000", "SPT-003", "3", "6"},
-                new String[]{"Vo Bao Ve Co Tay", "210000", "180000", "SPT-004", "0", "5"}
+                new String[]{"Vợt Pickleball Carbon Pro", "1290000", "1090000", "SPK-001", "0", "6"},
+                new String[]{"Set Bóng Pickleball 3 Quả", "220000", "190000", "SPK-002", "0", "6"},
+                new String[]{"Giày Pickleball Grip Max", "1790000", "1590000", "SPK-003", "0", "0"},
+                new String[]{"Vợt Cầu Lông Yonex Astrox 77", "3290000", "2990000", "SCL-001", "1", "2"},
+                new String[]{"Áo Cầu Lông Dry Fit", "390000", "320000", "SCL-002", "1", "1"},
+                new String[]{"Giày Cầu Lông Chuyên Dụng", "1490000", "1290000", "SCL-003", "1", "5"},
+                new String[]{"Bóng Đá FIFA Size 5", "520000", "450000", "SBD-001", "2", "7"},
+                new String[]{"Giày Đá Bóng Sân Cỏ Nhân Tạo", "1890000", "1650000", "SBD-002", "2", "0"},
+                new String[]{"Áo Đấu CLB Màu Đỏ", "690000", "590000", "SBD-003", "2", "1"},
+                new String[]{"Găng Tay Thủ Môn Pro", "790000", "690000", "SBD-004", "2", "1"},
+                new String[]{"Áo Ba Lỗ Gym Compression", "350000", "290000", "SGY-001", "3", "0"},
+                new String[]{"Quần Gym Co Giãn 4 Chiều", "420000", "350000", "SGY-002", "3", "1"},
+                new String[]{"Dây Kháng Lực 5 Mức", "450000", "390000", "SGY-003", "3", "3"},
+                new String[]{"Bình Nước Gym 1L", "150000", "120000", "SGY-004", "3", "4"},
+                new String[]{"Giày Running Asics Gel", "2490000", "2190000", "SRN-001", "4", "4"},
+                new String[]{"Đồng Hồ Chạy Bộ GPS Mock", "1990000", "1690000", "SRN-002", "4", "6"},
+                new String[]{"Tất Chạy Bộ Chuyên Dụng", "180000", "150000", "SRN-003", "4", "2"},
+                new String[]{"Túi Đeo Bụng Running", "260000", "220000", "SRN-004", "4", "6"},
+                new String[]{"Bóng Rổ Molten BG5000", "1850000", "1650000", "SBR-001", "5", "7"},
+                new String[]{"Giày Bóng Rổ Cổ Cao", "2690000", "2390000", "SBR-002", "5", "0"},
+                new String[]{"Băng Bảo Vệ Đầu Gối", "290000", "250000", "SBR-003", "5", "3"},
+                new String[]{"Áo Tanktop Bóng Rổ", "480000", "420000", "SBR-004", "5", "1"},
+                new String[]{"Quần Thể Thao Đa Năng", "430000", "350000", "SPT-001", "3", "0"},
+                new String[]{"Balo Thể Thao Chống Nước", "850000", "760000", "SPT-002", "4", "1"},
+                new String[]{"Khăn Lạnh Thể Thao", "120000", "95000", "SPT-003", "3", "6"},
+                new String[]{"Vớ Bảo Vệ Cổ Tay", "210000", "180000", "SPT-004", "0", "5"}
         );
 
         List<Product> products = new ArrayList<>();
@@ -271,8 +271,8 @@ public class DataSeeder implements CommandLineRunner {
             product.setSku(p[3]);
             product.setCategory(category);
             product.setBrand(brands.get(Integer.parseInt(p[5])));
-            product.setShortDescription("San pham " + p[0] + " chat luong cao cho nguoi choi the thao.");
-            product.setDescription("Mo ta chi tiet cho " + p[0] + ". Vat lieu ben bi, thiet ke hien dai, phu hop tap luyen va thi dau.");
+            product.setShortDescription("Sản phẩm " + p[0] + " chất lượng cao cho người chơi thể thao.");
+            product.setDescription("Mô tả chi tiết cho " + p[0] + ". Vật liệu bền bỉ, thiết kế hiện đại, phù hợp tập luyện và thi đấu.");
             List<String> images = categoryImages.getOrDefault(category.getSlug(), defaultImages);
             String thumbnailUrl = images.get(0);
             product.setThumbnailUrl(thumbnailUrl);
@@ -303,7 +303,7 @@ public class DataSeeder implements CommandLineRunner {
     private void seedCoupons() {
         Coupon c1 = new Coupon();
         c1.setCode("SPORT10");
-        c1.setDescription("Giam 10% don hang");
+        c1.setDescription("Giảm 10% đơn hàng");
         c1.setDiscountType(DiscountType.PERCENT);
         c1.setDiscountValue(BigDecimal.valueOf(10));
         c1.setMinOrderValue(BigDecimal.valueOf(500000));
@@ -316,7 +316,7 @@ public class DataSeeder implements CommandLineRunner {
 
         Coupon c2 = new Coupon();
         c2.setCode("FREESHIP50");
-        c2.setDescription("Giam 50000 VND");
+        c2.setDescription("Giảm 50000 VND");
         c2.setDiscountType(DiscountType.FIXED);
         c2.setDiscountValue(BigDecimal.valueOf(50000));
         c2.setMinOrderValue(BigDecimal.valueOf(700000));

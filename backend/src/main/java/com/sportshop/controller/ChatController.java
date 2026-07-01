@@ -25,14 +25,14 @@ public class ChatController {
 
     @PostMapping("/rooms/open")
     public ResponseEntity<ApiResponse<ChatRoomResponse>> openRoom(Authentication authentication) {
-        return ResponseEntity.ok(ApiResponse.success("Room opened", chatService.openRoomForCurrentUser(authentication.getName())));
+        return ResponseEntity.ok(ApiResponse.success("Đã mở phòng chat", chatService.openRoomForCurrentUser(authentication.getName())));
     }
 
     @GetMapping("/rooms/me")
     public ResponseEntity<ApiResponse<Page<ChatRoomResponse>>> myRooms(Authentication authentication,
                                                                        @RequestParam(defaultValue = "0") int page,
                                                                        @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(ApiResponse.success("My rooms", chatService.getMyRooms(authentication.getName(), page, size)));
+        return ResponseEntity.ok(ApiResponse.success("Phòng chat của tôi", chatService.getMyRooms(authentication.getName(), page, size)));
     }
 
     @GetMapping("/rooms/{roomId}/messages")
@@ -40,19 +40,19 @@ public class ChatController {
                                                                        @PathVariable UUID roomId,
                                                                        @RequestParam(defaultValue = "0") int page,
                                                                        @RequestParam(defaultValue = "20") int size) {
-        return ResponseEntity.ok(ApiResponse.success("Messages", chatService.getMessages(authentication.getName(), roomId, page, size)));
+        return ResponseEntity.ok(ApiResponse.success("Danh sách tin nhắn", chatService.getMessages(authentication.getName(), roomId, page, size)));
     }
 
     @PostMapping("/messages")
     public ResponseEntity<ApiResponse<MessageResponse>> sendMessage(Authentication authentication,
                                                                     @Valid @RequestBody SendMessageRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Message sent", chatService.sendMessage(authentication.getName(), request)));
+        return ResponseEntity.ok(ApiResponse.success("Đã gửi tin nhắn", chatService.sendMessage(authentication.getName(), request)));
     }
 
     @PostMapping("/rooms/{roomId}/read")
     public ResponseEntity<ApiResponse<Void>> markRead(Authentication authentication,
                                                       @PathVariable UUID roomId) {
         chatService.markRead(authentication.getName(), roomId);
-        return ResponseEntity.ok(ApiResponse.success("Marked as read", null));
+        return ResponseEntity.ok(ApiResponse.success("Đã đánh dấu đã đọc", null));
     }
 }

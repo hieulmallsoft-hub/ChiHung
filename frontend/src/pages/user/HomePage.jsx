@@ -13,7 +13,7 @@ export default function HomePage() {
     "Pickleball & Cau long",
     "Giay chay bo",
     "Gym accessories",
-    "Bong da chinh hang",
+    "Bóng đá chính hãng",
   ];
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export default function HomePage() {
         setProducts(response.data.data.content || []);
       } catch (error) {
         setProducts([]);
-        toast.error(error?.response?.data?.message || "Khong tai duoc danh sach san pham");
+        toast.error(error?.response?.data?.message || "Không tải được danh sách sản phẩm");
       } finally {
         setLoading(false);
       }
@@ -36,18 +36,18 @@ export default function HomePage() {
     <div className="space-y-16">
       <section className="relative overflow-hidden rounded-[2.5rem] border border-white/20 bg-white/10 p-8 text-white shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-md md:p-14">
         <div className="pointer-events-none absolute -left-16 top-24 h-64 w-64 rounded-full bg-primary-600/30 blur-[80px] float-slow pulse-soft" />
-        <div className="pointer-events-none absolute -right-24 -bottom-24 h-80 w-80 rounded-full bg-rose-500/20 blur-[100px] float-slower" />
+        <div className="pointer-events-none absolute -right-24 -bottom-24 h-80 w-80 rounded-full bg-cyan-500/20 blur-[100px] float-slower" />
 
         <div className="relative grid gap-12 lg:grid-cols-[1.2fr,0.8fr] lg:items-center z-10">
           <div className="space-y-8">
-            <span className="inline-flex w-fit items-center rounded-full border border-primary-500/30 bg-primary-500/10 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.25em] text-primary-300 anim-fade-up anim-delay-1 backdrop-blur-sm shadow-[0_0_15px_rgba(225,29,72,0.3)]">
-              Cửa hàng Thể thao Premium + Realtime Chat
+            <span className="inline-flex w-fit items-center rounded-full border border-primary-500/30 bg-primary-500/10 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.25em] text-primary-300 anim-fade-up anim-delay-1 backdrop-blur-sm shadow-[0_0_15px_rgba(14,165,233,0.3)]">
+              Cửa hàng Thể thao Premium + Thời gian thực Chat
             </span>
 
             <h1 className="font-heading text-5xl font-black leading-[1.1] md:text-7xl anim-fade-up anim-delay-2 tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white via-slate-100 to-slate-400">
               Thiết bị đẳng cấp,
               <br />
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-rose-400">chạm đỉnh vinh quang.</span>
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-cyan-400">chạm đỉnh vinh quang.</span>
             </h1>
 
             <p className="max-w-xl text-base text-slate-300 md:text-lg anim-fade-up anim-delay-3 leading-relaxed font-light">
@@ -57,7 +57,7 @@ export default function HomePage() {
             <div className="flex flex-wrap gap-4 anim-fade-up anim-delay-4">
               <Link
                 to="/products"
-                className="group relative inline-flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-primary-600 to-rose-700 px-8 py-4 font-bold text-white transition-all duration-300 hover:scale-105 hover:shadow-[0_0_40px_rgba(225,29,72,0.5)]"
+                className="group relative inline-flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-primary-600 to-cyan-700 px-8 py-4 font-bold text-white transition-all duration-300 hover:scale-105 hover:shadow-[0_0_40px_rgba(14,165,233,0.5)]"
               >
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,transparent,rgba(255,255,255,0.2),transparent)] -translate-x-[150%] skew-x-[-25deg] group-hover:animate-[shimmer_1.5s_infinite]"></div>
                 Khám phá ngay
@@ -78,7 +78,7 @@ export default function HomePage() {
                 <span
                   key={item}
                   className={`rounded-full px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-colors duration-300 anim-fade-up ${
-                    index === 0 ? "bg-primary-600 text-white shadow-[0_0_15px_rgba(225,29,72,0.4)]" : "bg-white/5 text-slate-300 hover:bg-white/15 border border-white/10"
+                    index === 0 ? "bg-primary-600 text-white shadow-[0_0_15px_rgba(14,165,233,0.4)]" : "bg-white/5 text-slate-300 hover:bg-white/15 border border-white/10"
                   }`}
                 >
                   {item}
@@ -91,9 +91,9 @@ export default function HomePage() {
                 <p className="text-3xl font-black text-white">50+</p>
                 <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">Sản phẩm</p>
               </div>
-              <div className="rounded-2xl border border-primary-500/20 bg-primary-900/20 px-2 py-4 backdrop-blur-md transition-transform hover:-translate-y-1 anim-fade-up anim-delay-2 shadow-[inset_0_0_20px_rgba(225,29,72,0.1)]">
+              <div className="rounded-2xl border border-primary-500/20 bg-primary-900/20 px-2 py-4 backdrop-blur-md transition-transform hover:-translate-y-1 anim-fade-up anim-delay-2 shadow-[inset_0_0_20px_rgba(14,165,233,0.1)]">
                 <p className="text-3xl font-black text-primary-400">24/7</p>
-                <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-primary-300/80">Hỗ trợ Live</p>
+                <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-primary-300/80">Hỗ trợ trực tuyến</p>
               </div>
               <div className="rounded-2xl border border-white/5 bg-white/5 px-2 py-4 backdrop-blur-md transition-transform hover:-translate-y-1 anim-fade-up anim-delay-3">
                 <p className="text-3xl font-black text-white">100%</p>
@@ -141,7 +141,7 @@ export default function HomePage() {
             key={item.title}
             className={`rounded-[2rem] border border-white/20 bg-white/10 p-8 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] transition-transform hover:-translate-y-2 hover:shadow-[0_15px_30px_rgba(0,0,0,0.4)] hover:bg-white/15 anim-fade-up ${index === 0 ? "anim-delay-1" : index === 1 ? "anim-delay-2" : "anim-delay-3"}`}
           >
-            <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-600 to-rose-600 shadow-[0_0_20px_rgba(225,29,72,0.4)]">
+            <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-600 to-cyan-600 shadow-[0_0_20px_rgba(14,165,233,0.4)]">
               <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
             </div>
             <h3 className="font-heading text-xl font-bold text-white">{item.title}</h3>

@@ -90,11 +90,11 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse checkout(String email, CheckoutRequest request) {
         User user = getUser(email);
         Address address = addressRepository.findByIdAndUser(request.getAddressId(), user)
-                .orElseThrow(() -> new ResourceNotFoundException("Address not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy địa chỉ"));
 
         List<Cart> carts = cartRepository.findByUserOrderByCreatedAtDesc(user);
         if (carts.isEmpty()) {
-            throw new BadRequestException("Cart is empty");
+            throw new BadRequestException("Giỏ hàng đang trống");
         }
 
         Cart cart = carts.stream()
@@ -103,7 +103,7 @@ public class OrderServiceImpl implements OrderService {
                 .orElse(carts.get(0));
         List<CartItem> items = cartItemRepository.findByCart(cart);
         if (items.isEmpty()) {
-            throw new BadRequestException("Cart is empty");
+            throw new BadRequestException("Giỏ hàng đang trống");
         }
 
         Map<UUID, Product> lockedProducts = items.stream()
@@ -111,17 +111,17 @@ public class OrderServiceImpl implements OrderService {
                 .distinct()
                 .sorted(Comparator.comparing(UUID::toString))
                 .map(productId -> productRepository.findByIdForUpdate(productId)
-                        .orElseThrow(() -> new ResourceNotFoundException("Product not found")))
+                        .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm")))
                 .collect(Collectors.toMap(Product::getId, Function.identity()));
 
         for (CartItem item : items) {
             Product product = lockedProducts.get(item.getProduct().getId());
             if (product.getStatus() != ProductStatus.ACTIVE || product.getStockQuantity() <= 0) {
-                throw new BadRequestException("Product " + product.getName() + " is out of stock");
+                throw new BadRequestException("Sản phẩm " + product.getName() + " đã hết hàng");
             }
             if (item.getQuantity() > product.getStockQuantity()) {
-                throw new BadRequestException("Product " + product.getName() + " only has "
-                        + product.getStockQuantity() + " item(s) left");
+                throw new BadRequestException("Sản phẩm " + product.getName() + " chỉ còn "
+                        + product.getStockQuantity() + " sản phẩm trong kho");
             }
         }
 
@@ -227,7 +227,7 @@ public class OrderServiceImpl implements OrderService {
                     specification = specification.and((root, query, cb) -> root.get("status").in(parsedStatuses));
                 }
             } catch (IllegalArgumentException ex) {
-                throw new BadRequestException("Invalid order status filter");
+                throw new BadRequestException("Bộ lọc trạng thái đơn hàng không hợp lệ");
             }
         }
         return orderRepository.findAll(specification, pageable)
@@ -238,7 +238,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse getMyOrderDetail(String email, UUID orderId) {
         User user = getUser(email);
         Order order = orderRepository.findByIdAndUser(orderId, user)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng"));
         return orderMapper.toResponse(order, orderItemRepository.findByOrder(order));
     }
 
@@ -247,10 +247,10 @@ public class OrderServiceImpl implements OrderService {
     public void cancelMyOrder(String email, UUID orderId) {
         User user = getUser(email);
         Order order = orderRepository.findByIdAndUser(orderId, user)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng"));
 
         if (!(order.getStatus() == OrderStatus.PENDING || order.getStatus() == OrderStatus.CONFIRMED)) {
-            throw new BadRequestException("Order cannot be cancelled in current status");
+            throw new BadRequestException("Không thể hủy đơn ở trạng thái hiện tại");
         }
 
         cancelOrder(order, "CUSTOMER", "Khách hàng đã hủy đơn");
@@ -276,7 +276,7 @@ public class OrderServiceImpl implements OrderService {
                 OrderStatus parsedStatus = OrderStatus.valueOf(status.trim().toUpperCase());
                 specification = specification.and((root, query, cb) -> cb.equal(root.get("status"), parsedStatus));
             } catch (IllegalArgumentException ex) {
-                throw new BadRequestException("Invalid order status");
+                throw new BadRequestException("Trạng thái đơn hàng không hợp lệ");
             }
         }
 
@@ -287,7 +287,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponse getOrderDetail(UUID id) {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng"));
         return orderMapper.toResponse(order, orderItemRepository.findByOrder(order));
     }
 
@@ -295,7 +295,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderResponse updateStatus(UUID id, UpdateOrderStatusRequest request) {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng"));
 
         OrderStatus oldStatus = order.getStatus();
         OrderStatus newStatus = request.getStatus();
@@ -304,7 +304,7 @@ public class OrderServiceImpl implements OrderService {
             return orderMapper.toResponse(order, orderItemRepository.findByOrder(order));
         }
         if (!isAllowedTransition(oldStatus, newStatus)) {
-            throw new BadRequestException("Cannot change order status from " + oldStatus + " to " + newStatus);
+            throw new BadRequestException("Không thể đổi trạng thái đơn hàng từ " + oldStatus + " sang " + newStatus);
         }
 
         if (newStatus == OrderStatus.CANCELLED) {
@@ -332,9 +332,9 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderResponse updatePayment(UUID id, PaymentUpdateRequest request) {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng"));
         Payment payment = paymentRepository.findByOrderId(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thanh toán"));
 
         payment.setMethod(request.getMethod());
         payment.setStatus(request.getStatus());
@@ -428,7 +428,7 @@ public class OrderServiceImpl implements OrderService {
 
     private User getUser(String email) {
         return userRepository.findByEmailAndDeletedFalse(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
     }
 
     private String formatAddress(Address address) {

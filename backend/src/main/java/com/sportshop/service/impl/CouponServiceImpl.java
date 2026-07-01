@@ -41,7 +41,7 @@ public class CouponServiceImpl implements CouponService {
     @Override
     @Transactional
     public CouponResponse update(UUID id, CouponRequest request) {
-        Coupon coupon = couponRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Coupon not found"));
+        Coupon coupon = couponRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy mã giảm giá"));
         map(coupon, request);
         return couponMapper.toResponse(couponRepository.save(coupon));
     }
@@ -49,7 +49,7 @@ public class CouponServiceImpl implements CouponService {
     @Override
     @Transactional
     public void delete(UUID id) {
-        Coupon coupon = couponRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Coupon not found"));
+        Coupon coupon = couponRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy mã giảm giá"));
         coupon.setActive(false);
         couponRepository.save(coupon);
     }

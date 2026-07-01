@@ -35,7 +35,7 @@ export default function ProductListPage() {
         setCategories(categoryRes.data.data || []);
         setBrands(brandRes.data.data || []);
       } catch (error) {
-        toast.error(error?.response?.data?.message || "Khong tai duoc bo loc san pham");
+        toast.error(error?.response?.data?.message || "Không tải được bộ lọc sản phẩm");
       }
     };
     bootstrap();
@@ -70,7 +70,7 @@ export default function ProductListPage() {
         setPageData(response.data.data);
       } catch (error) {
         setPageData({ content: [], totalElements: 0, totalPages: 0, number: 0 });
-        toast.error(error?.response?.data?.message || "Khong tai duoc danh sach san pham");
+        toast.error(error?.response?.data?.message || "Không tải được danh sách sản phẩm");
       } finally {
         setLoading(false);
       }
@@ -83,115 +83,147 @@ export default function ProductListPage() {
     setFilters((prev) => ({ ...prev, [field]: value }));
   };
 
-  return (
-    <div className="space-y-6">
-      <SectionTitle title="Tat ca san pham" subtitle="Tim kiem, loc va sap xep theo nhu cau" />
+  const inputClass = "w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-slate-400 backdrop-blur-sm focus:border-primary-500 focus:bg-white/10 focus:ring-1 focus:ring-primary-500 transition-all shadow-inner outline-none [&>option]:bg-slate-900 [&>option]:text-white";
 
-      <div className="section-shell space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-500">Bo loc thong minh</p>
+  return (
+    <div className="space-y-8 anim-fade-up">
+      <SectionTitle title="Khám phá Sản phẩm" subtitle="Bộ sưu tập đầy đủ với hàng ngàn sản phẩm cao cấp" />
+
+      <div className="relative overflow-hidden rounded-[2rem] border border-white/20 bg-white/10 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-xl md:p-8">
+        <div className="pointer-events-none absolute -right-20 -top-20 h-40 w-40 rounded-full bg-primary-600/20 blur-[60px] float-slow pulse-soft" />
+        
+        <div className="relative z-10 flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4 mb-6">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary-400">
+            Bộ lọc thông minh
+          </p>
           <button
-            className="btn-ghost"
+            className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 px-4 py-2 text-xs font-semibold text-white transition hover:bg-white/10 hover:border-white/30"
             onClick={() => {
               setFilters(initialFilter);
               setPage(0);
             }}
           >
-            Reset bo loc
+            Đặt lại bộ lọc
           </button>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-6">
-        <input
-          value={filters.keyword}
-          onChange={(e) => handleFilterChange("keyword", e.target.value)}
-          placeholder="Tim ten san pham"
-          className="md:col-span-2"
-        />
+        <div className="relative z-10 grid gap-4 md:grid-cols-6 lg:grid-cols-6">
+          <input
+            value={filters.keyword}
+            onChange={(e) => handleFilterChange("keyword", e.target.value)}
+            placeholder="Tìm tên sản phẩm..."
+            className={`md:col-span-2 lg:col-span-2 ${inputClass}`}
+          />
 
-        <select
-          value={filters.categoryId}
-          onChange={(e) => handleFilterChange("categoryId", e.target.value)}
-        >
-          <option value="">Tat ca danh muc</option>
-          {categories.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.name}
-            </option>
-          ))}
-        </select>
+          <select
+            value={filters.categoryId}
+            onChange={(e) => handleFilterChange("categoryId", e.target.value)}
+            className={inputClass}
+          >
+            <option value="">Tất cả danh mục</option>
+            {categories.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
 
-        <select
-          value={filters.brandId}
-          onChange={(e) => handleFilterChange("brandId", e.target.value)}
-        >
-          <option value="">Tat ca thuong hieu</option>
-          {brands.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.name}
-            </option>
-          ))}
-        </select>
+          <select
+            value={filters.brandId}
+            onChange={(e) => handleFilterChange("brandId", e.target.value)}
+            className={inputClass}
+          >
+            <option value="">Tất cả thương hiệu</option>
+            {brands.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
 
-        <input
-          type="number"
-          min="0"
-          value={filters.minPrice}
-          onChange={(e) => handleFilterChange("minPrice", e.target.value)}
-          placeholder="Gia tu"
-        />
-        <input
-          type="number"
-          min="0"
-          value={filters.maxPrice}
-          onChange={(e) => handleFilterChange("maxPrice", e.target.value)}
-          placeholder="Gia den"
-        />
+          <input
+            type="number"
+            min="0"
+            value={filters.minPrice}
+            onChange={(e) => handleFilterChange("minPrice", e.target.value)}
+            placeholder="Giá từ"
+            className={inputClass}
+          />
+          <input
+            type="number"
+            min="0"
+            value={filters.maxPrice}
+            onChange={(e) => handleFilterChange("maxPrice", e.target.value)}
+            placeholder="Giá đến"
+            className={inputClass}
+          />
 
-        <select
-          value={filters.inStock}
-          onChange={(e) => handleFilterChange("inStock", e.target.value)}
-        >
-          <option value="">Tat ca ton kho</option>
-          <option value="true">Con hang</option>
-          <option value="false">Hết hàng</option>
-        </select>
+          <select
+            value={filters.inStock}
+            onChange={(e) => handleFilterChange("inStock", e.target.value)}
+            className={inputClass}
+          >
+            <option value="">Tất cả tồn kho</option>
+            <option value="true">Còn hàng</option>
+            <option value="false">Hết hàng</option>
+          </select>
 
-        <select
-          value={filters.sortBy}
-          onChange={(e) => handleFilterChange("sortBy", e.target.value)}
-        >
-          <option value="newest">Moi nhat</option>
-          <option value="priceAsc">Gia tang dan</option>
-          <option value="priceDesc">Gia giam dan</option>
-          <option value="bestSeller">Ban chay</option>
-        </select>
+          <select
+            value={filters.sortBy}
+            onChange={(e) => handleFilterChange("sortBy", e.target.value)}
+            className={inputClass}
+          >
+            <option value="newest">Mới nhất</option>
+            <option value="priceAsc">Giá tăng dần</option>
+            <option value="priceDesc">Giá giảm dần</option>
+            <option value="bestSeller">Bán chạy</option>
+          </select>
         </div>
       </div>
 
       {loading ? (
         <LoadingSpinner />
       ) : (
-        <>
-          <div className="flex items-center justify-between rounded-2xl border border-rose-100/90 bg-white/90 px-4 py-3 text-sm text-slate-500">
+        <div className="space-y-8">
+          <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm text-slate-300 backdrop-blur-md">
             <p>
-              Tim thay <span className="font-semibold text-primary-700">{pageData?.totalElements || 0}</span> san pham
+              Hiển thị <span className="font-bold text-primary-400">{pageData?.content?.length || 0}</span> trên tổng số <span className="font-bold text-white">{pageData?.totalElements || 0}</span> sản phẩm
             </p>
-            <p className="text-xs uppercase tracking-[0.12em] text-rose-500">Catalog Sports Gear</p>
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
+              </span>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-teal-400 font-bold hidden sm:block">Tồn kho trực tiếp</p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {(pageData?.content || []).map((product) => (
-              <ProductCard key={product.id} product={product} />
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {(pageData?.content || []).map((product, i) => (
+              <div
+                key={product.id}
+                className={`anim-fade-up ${i % 4 === 0 ? "anim-delay-1" : i % 4 === 1 ? "anim-delay-2" : i % 4 === 2 ? "anim-delay-3" : "anim-delay-4"}`}
+              >
+                <ProductCard product={product} />
+              </div>
             ))}
           </div>
-          {(pageData?.content || []).length === 0 && (
-            <div className="rounded-2xl border border-rose-100 bg-white p-8 text-center text-slate-500">
-              Không tìm thấy sản phẩm phù hợp. Hãy thử từ khóa hoặc khoảng giá khác.
+          {(!pageData?.content || pageData.content.length === 0) && (
+            <div className="py-20 text-center">
+              <div className="mx-auto mb-4 h-24 w-24 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+                <svg className="h-10 w-10 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+              </div>
+              <p className="text-lg font-semibold text-white">Không tìm thấy sản phẩm nào</p>
+              <p className="mt-2 text-sm text-slate-400">Vui lòng thử lại với từ khóa hoặc bộ lọc khác.</p>
             </div>
           )}
-          <Pagination pageInfo={pageData} onPageChange={setPage} />
-        </>
+
+          {pageData?.totalPages > 1 && (
+            <div className="flex justify-center pt-8 border-t border-white/10">
+              <Pagination pageInfo={pageData} onPageChange={setPage} />
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

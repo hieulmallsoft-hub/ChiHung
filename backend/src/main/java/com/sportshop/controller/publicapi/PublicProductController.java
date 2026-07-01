@@ -33,17 +33,17 @@ public class PublicProductController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size
     ) {
-        return ResponseEntity.ok(ApiResponse.success("Product list",
+        return ResponseEntity.ok(ApiResponse.success("Danh sách sản phẩm",
                 productService.getProducts(keyword, categoryId, brandId, minPrice, maxPrice, inStock, sortBy, page, size)));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductResponse>> getProduct(@PathVariable UUID id) {
-        return ResponseEntity.ok(ApiResponse.success("Product detail", productService.getProduct(id)));
+        return ResponseEntity.ok(ApiResponse.success("Chi tiết sản phẩm", productService.getProduct(id)));
     }
 
     @GetMapping("/{id}/related")
     public ResponseEntity<ApiResponse<List<ProductResponse>>> getRelated(@PathVariable UUID id) {
-        return ResponseEntity.ok(ApiResponse.success("Related products", productService.getRelatedProducts(id)));
+        return ResponseEntity.ok(ApiResponse.success("Sản phẩm liên quan", productService.getRelatedProducts(id)));
     }
 }

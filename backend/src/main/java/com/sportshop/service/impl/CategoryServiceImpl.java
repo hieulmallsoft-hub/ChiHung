@@ -52,7 +52,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     public CategoryResponse update(UUID id, CategoryRequest request) {
         Category category = categoryRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy danh mục"));
 
         category.setName(request.getName());
         category.setSlug(buildUniqueSlug(request.getName()));
@@ -65,7 +65,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     public void delete(UUID id) {
         Category category = categoryRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy danh mục"));
         category.setDeleted(true);
         category.setActive(false);
         categoryRepository.save(category);

@@ -39,10 +39,10 @@ public class AdminMediaController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Map<String, String>>> upload(@RequestParam("file") MultipartFile file) throws IOException {
         if (file.isEmpty()) {
-            throw new IllegalArgumentException("File is empty");
+            throw new IllegalArgumentException("Tệp tải lên đang trống");
         }
         if (!ALLOWED_CONTENT_TYPES.contains(file.getContentType())) {
-            throw new IllegalArgumentException("Only jpg, png, gif and webp images are allowed");
+            throw new IllegalArgumentException("Chỉ cho phép ảnh jpg, png, gif và webp");
         }
 
         Files.createDirectories(uploadDir);
@@ -57,6 +57,6 @@ public class AdminMediaController {
         Path target = uploadDir.resolve(fileName).normalize();
         Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
 
-        return ResponseEntity.ok(ApiResponse.success("Media uploaded", Map.of("url", "/uploads/" + fileName)));
+        return ResponseEntity.ok(ApiResponse.success("Đã tải media", Map.of("url", "/uploads/" + fileName)));
     }
 }

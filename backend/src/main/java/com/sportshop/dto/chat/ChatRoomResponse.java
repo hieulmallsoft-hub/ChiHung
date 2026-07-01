@@ -19,4 +19,6 @@ public class ChatRoomResponse {
     private LocalDateTime lastMessageAt;
     private Integer unreadUserCount;
     private Integer unreadAdminCount;
+    private Boolean botEnabled;
+    private LocalDateTime botHandoffAt;
 }

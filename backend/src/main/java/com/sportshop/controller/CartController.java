@@ -24,36 +24,36 @@ public class CartController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<CartResponse>> getMyCart(Authentication authentication) {
-        return ResponseEntity.ok(ApiResponse.success("Cart detail", cartService.getMyCart(authentication.getName())));
+        return ResponseEntity.ok(ApiResponse.success("Chi tiết giỏ hàng", cartService.getMyCart(authentication.getName())));
     }
 
     @PostMapping("/items")
     public ResponseEntity<ApiResponse<CartResponse>> addItem(Authentication authentication,
                                                              @Valid @RequestBody AddCartItemRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Item added", cartService.addItem(authentication.getName(), request)));
+        return ResponseEntity.ok(ApiResponse.success("Đã thêm sản phẩm vào giỏ", cartService.addItem(authentication.getName(), request)));
     }
 
     @PutMapping("/items/{id}")
     public ResponseEntity<ApiResponse<CartResponse>> updateItem(Authentication authentication,
                                                                 @PathVariable UUID id,
                                                                 @Valid @RequestBody UpdateCartItemRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Item updated", cartService.updateItem(authentication.getName(), id, request)));
+        return ResponseEntity.ok(ApiResponse.success("Đã cập nhật sản phẩm trong giỏ", cartService.updateItem(authentication.getName(), id, request)));
     }
 
     @DeleteMapping("/items/{id}")
     public ResponseEntity<ApiResponse<CartResponse>> removeItem(Authentication authentication,
                                                                 @PathVariable UUID id) {
-        return ResponseEntity.ok(ApiResponse.success("Item removed", cartService.removeItem(authentication.getName(), id)));
+        return ResponseEntity.ok(ApiResponse.success("Đã xóa sản phẩm khỏi giỏ", cartService.removeItem(authentication.getName(), id)));
     }
 
     @PostMapping("/coupon/{code}")
     public ResponseEntity<ApiResponse<CartResponse>> applyCoupon(Authentication authentication,
                                                                  @PathVariable String code) {
-        return ResponseEntity.ok(ApiResponse.success("Coupon applied", cartService.applyCoupon(authentication.getName(), code)));
+        return ResponseEntity.ok(ApiResponse.success("Đã áp dụng mã giảm giá", cartService.applyCoupon(authentication.getName(), code)));
     }
 
     @DeleteMapping("/coupon")
     public ResponseEntity<ApiResponse<CartResponse>> clearCoupon(Authentication authentication) {
-        return ResponseEntity.ok(ApiResponse.success("Coupon removed", cartService.clearCoupon(authentication.getName())));
+        return ResponseEntity.ok(ApiResponse.success("Đã bỏ mã giảm giá", cartService.clearCoupon(authentication.getName())));
     }
 }

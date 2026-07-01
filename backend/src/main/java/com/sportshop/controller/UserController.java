@@ -30,44 +30,44 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserResponse>> me(Authentication authentication) {
-        return ResponseEntity.ok(ApiResponse.success("Profile", userService.getProfile(authentication.getName())));
+        return ResponseEntity.ok(ApiResponse.success("Thông tin cá nhân", userService.getProfile(authentication.getName())));
     }
 
     @PutMapping("/me")
     public ResponseEntity<ApiResponse<UserResponse>> updateMe(Authentication authentication,
                                                               @Valid @RequestBody UserUpdateRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Profile updated", userService.updateProfile(authentication.getName(), request)));
+        return ResponseEntity.ok(ApiResponse.success("Đã cập nhật thông tin cá nhân", userService.updateProfile(authentication.getName(), request)));
     }
 
     @PostMapping("/change-password")
     public ResponseEntity<ApiResponse<Void>> changePassword(Authentication authentication,
                                                             @Valid @RequestBody ChangePasswordRequest request) {
         authService.changePassword(authentication.getName(), request);
-        return ResponseEntity.ok(ApiResponse.success("Password changed", null));
+        return ResponseEntity.ok(ApiResponse.success("Đã đổi mật khẩu", null));
     }
 
     @GetMapping("/me/addresses")
     public ResponseEntity<ApiResponse<List<AddressResponse>>> myAddresses(Authentication authentication) {
-        return ResponseEntity.ok(ApiResponse.success("Address list", userService.getMyAddresses(authentication.getName())));
+        return ResponseEntity.ok(ApiResponse.success("Danh sách địa chỉ", userService.getMyAddresses(authentication.getName())));
     }
 
     @PostMapping("/me/addresses")
     public ResponseEntity<ApiResponse<AddressResponse>> addAddress(Authentication authentication,
                                                                    @Valid @RequestBody AddressRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Address created", userService.addAddress(authentication.getName(), request)));
+        return ResponseEntity.ok(ApiResponse.success("Đã tạo địa chỉ", userService.addAddress(authentication.getName(), request)));
     }
 
     @PutMapping("/me/addresses/{id}")
     public ResponseEntity<ApiResponse<AddressResponse>> updateAddress(Authentication authentication,
                                                                       @PathVariable UUID id,
                                                                       @Valid @RequestBody AddressRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Address updated", userService.updateAddress(authentication.getName(), id, request)));
+        return ResponseEntity.ok(ApiResponse.success("Đã cập nhật địa chỉ", userService.updateAddress(authentication.getName(), id, request)));
     }
 
     @DeleteMapping("/me/addresses/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteAddress(Authentication authentication,
                                                            @PathVariable UUID id) {
         userService.deleteAddress(authentication.getName(), id);
-        return ResponseEntity.ok(ApiResponse.success("Address deleted", null));
+        return ResponseEntity.ok(ApiResponse.success("Đã xóa địa chỉ", null));
     }
 }

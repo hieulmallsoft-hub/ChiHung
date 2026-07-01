@@ -12,12 +12,12 @@ export default function OrderHistoryPage() {
   const stompRef = useRef(null);
 
   const statusConfig = {
-    PENDING: { label: "Cho xac nhan", tone: "bg-amber-100 text-amber-700 border-amber-200" },
-    CONFIRMED: { label: "Da xac nhan", tone: "bg-sky-100 text-sky-700 border-sky-200" },
-    PROCESSING: { label: "Dang xu ly", tone: "bg-indigo-100 text-indigo-700 border-indigo-200" },
-    SHIPPING: { label: "Dang giao", tone: "bg-blue-100 text-blue-700 border-blue-200" },
-    DELIVERED: { label: "Da giao", tone: "bg-emerald-100 text-emerald-700 border-emerald-200" },
-    CANCELLED: { label: "Da huy", tone: "bg-rose-100 text-rose-700 border-rose-200" },
+    PENDING: { label: "Chờ xác nhận", tone: "bg-amber-100 text-amber-700 border-amber-200" },
+    CONFIRMED: { label: "Đã xác nhận", tone: "bg-sky-100 text-sky-700 border-sky-200" },
+    PROCESSING: { label: "Đang xử lý", tone: "bg-indigo-100 text-indigo-700 border-indigo-200" },
+    SHIPPING: { label: "Đang giao", tone: "bg-blue-100 text-blue-700 border-blue-200" },
+    DELIVERED: { label: "Đã giao", tone: "bg-teal-100 text-teal-700 border-teal-200" },
+    CANCELLED: { label: "Đã hủy", tone: "bg-cyan-100 text-cyan-700 border-cyan-200" },
   };
 
   const statusIcon = (status) => {
@@ -75,12 +75,12 @@ export default function OrderHistoryPage() {
   };
 
   const tabs = [
-    { key: "all", label: "Tat ca", statuses: null },
-    { key: "pending", label: "Cho xac nhan", statuses: ["PENDING"] },
-    { key: "processing", label: "Dang xu ly", statuses: ["CONFIRMED", "PROCESSING"] },
-    { key: "shipping", label: "Dang giao", statuses: ["SHIPPING"] },
-    { key: "delivered", label: "Da giao", statuses: ["DELIVERED"] },
-    { key: "cancelled", label: "Da huy", statuses: ["CANCELLED"] },
+    { key: "all", label: "Tất cả", statuses: null },
+    { key: "pending", label: "Chờ xác nhận", statuses: ["PENDING"] },
+    { key: "processing", label: "Đang xử lý", statuses: ["CONFIRMED", "PROCESSING"] },
+    { key: "shipping", label: "Đang giao", statuses: ["SHIPPING"] },
+    { key: "delivered", label: "Đã giao", statuses: ["DELIVERED"] },
+    { key: "cancelled", label: "Đã hủy", statuses: ["CANCELLED"] },
   ];
 
   const loadOrders = async (page = 0) => {
@@ -152,10 +152,10 @@ export default function OrderHistoryPage() {
   const handleCancel = async (id) => {
     try {
       await orderApi.cancelOrder(id);
-      toast.success("Da huy don hang");
+      toast.success("Đã hủy đơn hàng");
       loadOrders(pageData?.number || 0);
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Khong the huy don");
+      toast.error(error?.response?.data?.message || "Không thể hủy đơn");
     }
   };
 
@@ -169,31 +169,31 @@ export default function OrderHistoryPage() {
     <div className="space-y-5">
       <section className="grid gap-3 md:grid-cols-3">
         <div className="section-shell p-4">
-          <p className="text-sm text-slate-500">Tong chi tieu</p>
+          <p className="text-sm text-slate-500">Tổng chi tiêu</p>
           <p className="mt-1 text-xl font-bold text-primary-700">{Number(stats?.totalSpent || 0).toLocaleString()} VND</p>
         </div>
         <div className="section-shell p-4">
-          <p className="text-sm text-slate-500">Tong don hang</p>
+          <p className="text-sm text-slate-500">Tổng đơn hàng</p>
           <p className="mt-1 text-xl font-bold text-slate-900">{stats?.totalOrders || 0}</p>
         </div>
         <div className="section-shell p-4">
-          <p className="text-sm text-slate-500">San pham gan day</p>
-          <p className="mt-1 text-sm">{(stats?.recentProducts || []).join(", ") || "Chua co"}</p>
+          <p className="text-sm text-slate-500">Sản phẩm gần đây</p>
+          <p className="mt-1 text-sm">{(stats?.recentProducts || []).join(", ") || "Chưa có"}</p>
         </div>
       </section>
 
       <section className="section-shell">
-        <div className="relative overflow-hidden rounded-3xl border border-rose-100 bg-gradient-to-br from-white via-rose-50/70 to-white p-5">
+        <div className="relative overflow-hidden rounded-3xl border border-cyan-100 bg-gradient-to-br from-white via-cyan-50/70 to-white p-5">
           <div className="pointer-events-none absolute -right-8 -top-10 h-36 w-36 rounded-full bg-primary-100/60 blur-2xl" />
-          <div className="pointer-events-none absolute -left-10 bottom-0 h-28 w-28 rounded-full bg-rose-200/60 blur-2xl" />
+          <div className="pointer-events-none absolute -left-10 bottom-0 h-28 w-28 rounded-full bg-cyan-200/60 blur-2xl" />
           <div className="relative flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-rose-500">Don hang cua ban</p>
-              <h1 className="mt-2 font-heading text-2xl font-bold text-slate-900">Kiem tra don hang</h1>
-              <p className="text-sm text-slate-500">Trang thai ro rang, icon minh hoa nhu Shopee.</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-500">Đơn hàng của bạn</p>
+              <h1 className="mt-2 font-heading text-2xl font-bold text-slate-900">Kiểm tra đơn hàng</h1>
+              <p className="text-sm text-slate-500">Theo dõi trạng thái rõ ràng và dễ hiểu.</p>
             </div>
-            <div className="rounded-full border border-rose-200 bg-white/90 px-3 py-1 text-xs font-semibold text-primary-700 shadow-soft">
-              {orderCounts.all} don trong trang nay
+            <div className="rounded-full border border-cyan-200 bg-white/90 px-3 py-1 text-xs font-semibold text-primary-700 shadow-soft">
+              {orderCounts.all} đơn trong trang này
             </div>
           </div>
         </div>
@@ -212,7 +212,7 @@ export default function OrderHistoryPage() {
                 className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm font-semibold transition ${
                   isActive
                     ? "border-primary-600 bg-primary-600 text-white shadow-soft"
-                    : "border-rose-200 bg-white text-slate-600 hover:border-primary-300 hover:text-primary-700"
+                    : "border-cyan-200 bg-white text-slate-600 hover:border-primary-300 hover:text-primary-700"
                 }`}
               >
                 <span className="inline-flex items-center gap-2">
@@ -234,8 +234,8 @@ export default function OrderHistoryPage() {
 
         <div className="mt-4 space-y-4">
           {filteredOrders.length === 0 ? (
-            <div className="rounded-2xl border border-rose-100 bg-white p-5 text-center text-sm text-slate-500">
-              Chua co don hang phu hop voi bo loc nay.
+            <div className="rounded-2xl border border-cyan-100 bg-white p-5 text-center text-sm text-slate-500">
+              Chưa có đơn hàng phù hợp với bộ lọc này.
             </div>
           ) : (
             filteredOrders.map((order) => {
@@ -248,8 +248,8 @@ export default function OrderHistoryPage() {
               const canCancel = order.status === "PENDING" || order.status === "CONFIRMED";
 
               return (
-                <article key={order.id} className="overflow-hidden rounded-2xl border border-rose-100 bg-white shadow-soft">
-                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rose-100 px-4 py-3">
+                <article key={order.id} className="overflow-hidden rounded-2xl border border-cyan-100 bg-white shadow-soft">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-cyan-100 px-4 py-3">
                     <div className="flex items-center gap-3">
                       <div className="rounded-full bg-primary-700/10 px-3 py-1 text-xs font-bold text-primary-700">
                         SportShop
@@ -260,42 +260,42 @@ export default function OrderHistoryPage() {
                         {statusMeta.label}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500">Ngay dat: {formatDate(order.createdAt)}</p>
+                    <p className="text-xs text-slate-500">Ngày đặt: {formatDate(order.createdAt)}</p>
                   </div>
 
                   <div className="px-4 py-4">
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div className="min-w-0">
                         <p className="text-sm font-semibold text-slate-900">
-                          {previewItem ? previewItem.productName : "San pham"}
+                          {previewItem ? previewItem.productName : "Sản phẩm"}
                         </p>
                         <p className="mt-1 text-xs text-slate-500">
-                          So luong: {previewItem?.quantity || 1}
-                          {extraCount > 0 && ` • +${extraCount} san pham khac`}
+                          Số lượng: {previewItem?.quantity || 1}
+                          {extraCount > 0 && ` • +${extraCount} sản phẩm khác`}
                         </p>
-                        <p className="mt-2 text-xs text-slate-500">Dia chi: {order.shippingAddress}</p>
+                        <p className="mt-2 text-xs text-slate-500">Địa chỉ: {order.shippingAddress}</p>
                       </div>
 
                       <div className="text-right">
-                        <p className="text-sm text-slate-500">Thanh tien</p>
+                        <p className="text-sm text-slate-500">Thành tiền</p>
                         <p className="text-lg font-bold text-primary-700">{Number(order.finalTotal).toLocaleString()} VND</p>
                       </div>
                     </div>
 
                     <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
                       <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-                        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-rose-100 bg-rose-50 text-primary-700">
+                        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-cyan-100 bg-cyan-50 text-primary-700">
                           {statusIcon(order.status)}
                         </span>
                         {statusMeta.label}
                       </div>
                       {canCancel && (
                         <button onClick={() => handleCancel(order.id)} className="btn-secondary text-primary-700">
-                          Huy don
+                          Hủy đơn
                         </button>
                       )}
                       <Link to={`/orders/${order.id}`} className="btn-primary px-4">
-                        Xem chi tiet
+                        Xem chi tiết
                       </Link>
                     </div>
                   </div>

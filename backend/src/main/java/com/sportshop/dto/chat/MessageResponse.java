@@ -1,5 +1,6 @@
 package com.sportshop.dto.chat;
 
+import com.sportshop.enums.MessageType;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -13,6 +14,7 @@ public class MessageResponse {
     private UUID roomId;
     private UUID senderId;
     private String senderName;
+    private MessageType messageType;
     private String content;
     private boolean deleted;
     private LocalDateTime editedAt;

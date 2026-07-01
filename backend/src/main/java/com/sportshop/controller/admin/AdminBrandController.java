@@ -23,23 +23,23 @@ public class AdminBrandController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<BrandResponse>>> getAll() {
-        return ResponseEntity.ok(ApiResponse.success("Brand list", brandService.getAll()));
+        return ResponseEntity.ok(ApiResponse.success("Danh sách thương hiệu", brandService.getAll()));
     }
 
     @PostMapping
     public ResponseEntity<ApiResponse<BrandResponse>> create(@Valid @RequestBody BrandRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Brand created", brandService.create(request)));
+        return ResponseEntity.ok(ApiResponse.success("Đã tạo thương hiệu", brandService.create(request)));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<BrandResponse>> update(@PathVariable UUID id,
                                                              @Valid @RequestBody BrandRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Brand updated", brandService.update(id, request)));
+        return ResponseEntity.ok(ApiResponse.success("Đã cập nhật thương hiệu", brandService.update(id, request)));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
         brandService.delete(id);
-        return ResponseEntity.ok(ApiResponse.success("Brand deleted", null));
+        return ResponseEntity.ok(ApiResponse.success("Đã xóa thương hiệu", null));
     }
 }

@@ -1,4 +1,4 @@
-﻿import { Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
 import AdminFloatingChatWidget from "../chat/AdminFloatingChatWidget";
 
@@ -10,16 +10,16 @@ export default function AdminLayout({ children }) {
       <header className="sticky top-0 z-40 border-b border-white/10 bg-slate-950/80 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-6">
           <div className="flex items-center gap-3">
-            <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-rose-500 via-red-500 to-orange-400 text-sm font-extrabold text-white shadow-glow">
+            <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-cyan-500 via-sky-500 to-orange-400 text-sm font-extrabold text-white shadow-glow">
               SS
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-rose-200">Admin workspace</p>
-              <h1 className="font-heading text-xl font-bold text-white">SportShop Control</h1>
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200">Không gian quản trị</p>
+              <h1 className="font-heading text-xl font-bold text-white">Điều hành SportShop</h1>
             </div>
           </div>
           <Link to="/" className="btn-secondary text-sm border-white/20 bg-white/10 text-white hover:bg-white/20">
-            Ve trang user
+            Về trang người dùng
           </Link>
         </div>
       </header>

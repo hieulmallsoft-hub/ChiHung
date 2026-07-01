@@ -56,7 +56,7 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
         );
 
         if (rawAuthHeader == null || !rawAuthHeader.startsWith("Bearer ")) {
-            throw new AccessDeniedException("Missing websocket Authorization header");
+            throw new AccessDeniedException("Thiếu header Authorization cho websocket");
         }
 
         String token = rawAuthHeader.substring(7).trim();
@@ -64,12 +64,12 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
         try {
             username = jwtService.extractUsernameFromAccessToken(token);
         } catch (Exception ex) {
-            throw new AccessDeniedException("Invalid access token for websocket");
+            throw new AccessDeniedException("Access token cho websocket không hợp lệ");
         }
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         if (!jwtService.isAccessTokenValid(token, userDetails)) {
-            throw new AccessDeniedException("Access token expired or invalid");
+            throw new AccessDeniedException("Access token đã hết hạn hoặc không hợp lệ");
         }
 
         UsernamePasswordAuthenticationToken authentication =

@@ -13,5 +13,7 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
 
     Page<Message> findByRoomOrderByCreatedAtAsc(ChatRoom room, Pageable pageable);
 
+    Page<Message> findByRoomOrderByCreatedAtDesc(ChatRoom room, Pageable pageable);
+
     List<Message> findByRoom(ChatRoom room);
 }

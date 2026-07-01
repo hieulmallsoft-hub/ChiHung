@@ -1,6 +1,7 @@
 package com.sportshop.repository;
 
 import com.sportshop.entity.Product;
+import com.sportshop.enums.ProductStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -27,6 +28,8 @@ public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpec
     Page<Product> findByDeletedFalse(Pageable pageable);
 
     List<Product> findBySearchTextIsNull();
+
+    Page<Product> findByDeletedFalseAndStatus(ProductStatus status, Pageable pageable);
 
     List<Product> findTop8ByDeletedFalseAndCategoryIdAndIdNotOrderBySoldCountDesc(UUID categoryId, UUID excludeId);
 

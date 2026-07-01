@@ -29,23 +29,23 @@ public class AdminOrderController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(ApiResponse.success("Order list", orderService.getOrders(keyword, status, page, size)));
+        return ResponseEntity.ok(ApiResponse.success("Danh sách đơn hàng", orderService.getOrders(keyword, status, page, size)));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<OrderResponse>> detail(@PathVariable UUID id) {
-        return ResponseEntity.ok(ApiResponse.success("Order detail", orderService.getOrderDetail(id)));
+        return ResponseEntity.ok(ApiResponse.success("Chi tiết đơn hàng", orderService.getOrderDetail(id)));
     }
 
     @PutMapping("/{id}/status")
     public ResponseEntity<ApiResponse<OrderResponse>> updateStatus(@PathVariable UUID id,
                                                                    @Valid @RequestBody UpdateOrderStatusRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Order status updated", orderService.updateStatus(id, request)));
+        return ResponseEntity.ok(ApiResponse.success("Đã cập nhật trạng thái đơn hàng", orderService.updateStatus(id, request)));
     }
 
     @PutMapping("/{id}/payment")
     public ResponseEntity<ApiResponse<OrderResponse>> updatePayment(@PathVariable UUID id,
                                                                     @Valid @RequestBody PaymentUpdateRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Payment updated", orderService.updatePayment(id, request)));
+        return ResponseEntity.ok(ApiResponse.success("Đã cập nhật thanh toán", orderService.updatePayment(id, request)));
     }
 }

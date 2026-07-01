@@ -30,7 +30,7 @@ export default function FloatingChatWidget() {
 
           if (newAdminMessages.length > 0) {
             setUnreadCount((count) => count + newAdminMessages.length);
-            toast.success("Ban co tin nhan moi tu admin");
+            toast.success("Bạn có tin nhắn mới từ quản trị viên");
           }
 
           return nextMessages;
@@ -41,7 +41,7 @@ export default function FloatingChatWidget() {
       setMessages(nextMessages);
     } catch (error) {
       if (!silent) {
-        toast.error(error?.response?.data?.message || "Khong tai duoc lich su chat");
+        toast.error(error?.response?.data?.message || "Không tải được lịch sử chat");
       }
     }
   };
@@ -81,7 +81,7 @@ export default function FloatingChatWidget() {
                 const isFromAdmin = payload?.senderId && payload.senderId !== user?.id;
                 if (isNew && isFromAdmin && !openRef.current) {
                   setUnreadCount((count) => count + 1);
-                  toast.success("Ban co tin nhan moi tu admin");
+                  toast.success("Bạn có tin nhắn mới từ quản trị viên");
                 }
                 return next;
               });
@@ -103,7 +103,7 @@ export default function FloatingChatWidget() {
       } catch (error) {
         if (!active) return;
         setStatus("fallback");
-        toast.error(error?.response?.data?.message || "Khong the ket noi chat");
+        toast.error(error?.response?.data?.message || "Không thể kết nối chat");
       }
     };
 
@@ -164,7 +164,7 @@ export default function FloatingChatWidget() {
       }
       setContent("");
     } catch {
-      toast.error("Gui tin nhan that bai");
+      toast.error("Gửi tin nhắn thất bại");
     }
   };
 
@@ -175,7 +175,7 @@ export default function FloatingChatWidget() {
         className="fixed bottom-6 right-6 z-50 inline-flex items-center gap-2 rounded-full border border-primary-400/20 bg-gradient-to-r from-primary-600 to-primary-700 px-5 py-3 text-sm font-semibold text-white shadow-glow transition hover:-translate-y-0.5"
       >
         <span className="grid h-5 w-5 place-items-center rounded-full bg-white/20 text-[11px]">...</span>
-        Chat ho tro
+        Chat hỗ trợ
         {unreadCount > 0 && (
           <span className="ml-2 inline-flex min-w-6 items-center justify-center rounded-full bg-white px-1.5 py-0.5 text-xs font-bold text-primary-700">
             {unreadCount > 99 ? "99+" : unreadCount}
@@ -186,57 +186,57 @@ export default function FloatingChatWidget() {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-[360px] overflow-hidden rounded-3xl border border-rose-100 bg-white/95 shadow-2xl backdrop-blur">
+    <div className="fixed bottom-6 right-6 z-50 w-[360px] overflow-hidden rounded-3xl border border-cyan-100 bg-white/95 shadow-2xl backdrop-blur">
       <div className="flex items-center justify-between bg-gradient-to-r from-primary-700 to-primary-600 px-4 py-3 text-white">
-        <p className="font-semibold">Ho tro truc tuyen</p>
+        <p className="font-semibold">Hỗ trợ trực tuyến</p>
         <div className="flex items-center gap-2">
-          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${status === "connected" ? "bg-emerald-200 text-emerald-700" : "bg-amber-200 text-amber-700"}`}>
-            {status === "connected" ? "Realtime" : "Fallback"}
+          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${status === "connected" ? "bg-teal-200 text-teal-700" : "bg-amber-200 text-amber-700"}`}>
+            {status === "connected" ? "Thời gian thực" : "Dự phòng"}
           </span>
           <button onClick={() => setOpen(false)} className="text-sm">
-            Dong
+            Đóng
           </button>
         </div>
       </div>
 
-      <div className="h-80 space-y-2 overflow-y-auto bg-gradient-to-b from-rose-50 to-white p-3">
+      <div className="h-80 space-y-2 overflow-y-auto bg-gradient-to-b from-cyan-50 to-white p-3">
         {messages.length === 0 && (
-          <div className="rounded-xl border border-dashed border-rose-200 bg-white/70 p-3 text-xs text-slate-500">
-            Chao ban, hay gui noi dung de admin ho tro ngay.
+          <div className="rounded-xl border border-dashed border-cyan-200 bg-white/70 p-3 text-xs text-slate-500">
+            Chào bạn, hãy gửi nội dung để bộ phận hỗ trợ phản hồi ngay.
           </div>
         )}
         {messages.map((msg) => {
           const mine = msg.senderId === user?.id;
           const isDeleted = Boolean(msg.deleted);
           const isEdited = Boolean(msg.editedAt);
-          const displayContent = isDeleted ? "Tin nhan da bi xoa" : msg.content;
+          const displayContent = isDeleted ? "Tin nhắn đã bị xóa" : msg.content;
           return (
             <div
               key={msg.id}
               className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm shadow-sm ${
-                mine ? "ml-auto bg-primary-700 text-white" : "border border-rose-100 bg-white text-slate-700"
+                mine ? "ml-auto bg-primary-700 text-white" : "border border-cyan-100 bg-white text-slate-700"
               }`}
             >
               <p className="text-[11px] opacity-70">{msg.senderName}</p>
               <p className={isDeleted ? "italic opacity-70" : ""}>
                 {displayContent}
-                {isEdited && !isDeleted && <span className="ml-1 text-[11px] opacity-70">(da sua)</span>}
+                {isEdited && !isDeleted && <span className="ml-1 text-[11px] opacity-70">(đã sửa)</span>}
               </p>
             </div>
           );
         })}
       </div>
 
-      <div className="flex gap-2 border-t border-rose-100 p-3">
+      <div className="flex gap-2 border-t border-cyan-100 p-3">
         <input
           value={content}
           onChange={(event) => setContent(event.target.value)}
           onKeyDown={(event) => event.key === "Enter" && sendMessage()}
           className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm"
-          placeholder="Nhap tin nhan..."
+          placeholder="Nhập tin nhắn..."
         />
         <button onClick={sendMessage} className="btn-primary px-4 text-sm">
-          Gui
+          Gửi
         </button>
       </div>
     </div>

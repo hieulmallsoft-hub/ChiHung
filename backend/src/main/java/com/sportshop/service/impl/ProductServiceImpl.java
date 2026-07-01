@@ -81,14 +81,14 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponse getProduct(UUID id) {
         Product product = productRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm"));
         return toResponse(product);
     }
 
     @Override
     public List<ProductResponse> getRelatedProducts(UUID productId) {
         Product product = productRepository.findByIdAndDeletedFalse(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm"));
 
         return productRepository.findTop8ByDeletedFalseAndCategoryIdAndIdNotOrderBySoldCountDesc(
                         product.getCategory().getId(),
@@ -102,20 +102,20 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public ProductResponse create(ProductRequest request) {
         if (productRepository.findBySku(request.getSku()).isPresent()) {
-            throw new BadRequestException("SKU already exists");
+            throw new BadRequestException("SKU đã tồn tại");
         }
 
         Category category = categoryRepository.findByIdAndDeletedFalse(request.getCategoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy danh mục"));
         Brand brand = brandRepository.findByIdAndDeletedFalse(request.getBrandId())
-                .orElseThrow(() -> new ResourceNotFoundException("Brand not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thương hiệu"));
 
         Product product = new Product();
         mapProduct(product, request, category, brand);
         product = productRepository.save(product);
 
         saveImages(product, request.getImageUrls(), request.getThumbnailUrl());
-        logInventory(product, 0, request.getStockQuantity(), request.getStockQuantity(), "Initial stock", "PRODUCT", product.getId().toString());
+        logInventory(product, 0, request.getStockQuantity(), request.getStockQuantity(), "Tồn kho ban đầu", "PRODUCT", product.getId().toString());
 
         return toResponse(product);
     }
@@ -124,16 +124,16 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public ProductResponse update(UUID id, ProductRequest request) {
         Product product = productRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm"));
 
         if (!product.getSku().equalsIgnoreCase(request.getSku()) && productRepository.findBySku(request.getSku()).isPresent()) {
-            throw new BadRequestException("SKU already exists");
+            throw new BadRequestException("SKU đã tồn tại");
         }
 
         Category category = categoryRepository.findByIdAndDeletedFalse(request.getCategoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy danh mục"));
         Brand brand = brandRepository.findByIdAndDeletedFalse(request.getBrandId())
-                .orElseThrow(() -> new ResourceNotFoundException("Brand not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thương hiệu"));
 
         int oldStock = product.getStockQuantity();
         mapProduct(product, request, category, brand);
@@ -149,7 +149,7 @@ public class ProductServiceImpl implements ProductService {
                     oldStock,
                     request.getStockQuantity() - oldStock,
                     request.getStockQuantity(),
-                    "Stock adjusted by admin",
+                    "Admin điều chỉnh tồn kho",
                     "PRODUCT",
                     product.getId().toString());
         }
@@ -161,7 +161,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public void delete(UUID id) {
         Product product = productRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm"));
         product.setDeleted(true);
         productRepository.save(product);
     }
@@ -170,7 +170,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public ProductResponse adjustStock(UUID id, InventoryAdjustRequest request) {
         Product product = productRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm"));
 
         int before = product.getStockQuantity();
         int after = request.getNewStockQuantity();
@@ -194,7 +194,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<InventoryLogResponse> getInventoryLogs(UUID productId) {
         Product product = productRepository.findByIdAndDeletedFalse(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm"));
 
         return inventoryLogRepository.findTop50ByProductOrderByCreatedAtDesc(product).stream()
                 .map(log -> InventoryLogResponse.builder()

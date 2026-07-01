@@ -30,7 +30,7 @@ public class AdminReportController {
                 "topProducts", summary.getTopProducts(),
                 "orderStatusStats", summary.getOrderStatusStats()
         );
-        return ResponseEntity.ok(ApiResponse.success("Revenue report", data));
+        return ResponseEntity.ok(ApiResponse.success("Báo cáo doanh thu", data));
     }
 
     private int resolveDays(String range) {

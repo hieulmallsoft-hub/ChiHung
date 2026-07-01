@@ -91,7 +91,7 @@ public class UserServiceImpl implements UserService {
     public AddressResponse updateAddress(String email, UUID addressId, AddressRequest request) {
         User user = getUserByEmail(email);
         Address address = addressRepository.findByIdAndUser(addressId, user)
-                .orElseThrow(() -> new ResourceNotFoundException("Address not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy địa chỉ"));
 
         if (request.isDefaultAddress()) {
             unsetDefaultAddress(user);
@@ -106,7 +106,7 @@ public class UserServiceImpl implements UserService {
     public void deleteAddress(String email, UUID addressId) {
         User user = getUserByEmail(email);
         Address address = addressRepository.findByIdAndUser(addressId, user)
-                .orElseThrow(() -> new ResourceNotFoundException("Address not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy địa chỉ"));
         addressRepository.delete(address);
     }
 
@@ -126,7 +126,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse getUserById(UUID id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
         return userMapper.toResponse(user);
     }
 
@@ -134,11 +134,11 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserResponse createUser(UserCreateRequest request, boolean adminRole) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new BadRequestException("Email already exists");
+            throw new BadRequestException("Email đã tồn tại");
         }
 
         Role role = roleRepository.findByName(adminRole ? RoleName.ROLE_ADMIN : RoleName.ROLE_USER)
-                .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy vai trò"));
 
         User user = new User();
         user.setFullName(request.getFullName());
@@ -154,7 +154,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserResponse updateUser(UUID id, UserUpdateRequest request) {
-        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail().toLowerCase());
         user.setPhone(request.getPhone());
@@ -165,7 +165,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void lockUser(UUID id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
         user.setEnabled(false);
         user.setStatus(UserStatus.LOCKED);
         userRepository.save(user);
@@ -174,7 +174,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void deleteUser(UUID id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
         user.setDeleted(true);
         user.setEnabled(false);
         userRepository.save(user);
@@ -183,14 +183,14 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void resetUserPassword(UUID id, String newPassword) {
-        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
 
     private User getUserByEmail(String email) {
         return userRepository.findByEmailAndDeletedFalse(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
     }
 
     private void unsetDefaultAddress(User user) {

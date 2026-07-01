@@ -11,7 +11,7 @@ export default function CartPage() {
   const [couponCode, setCouponCode] = useState("");
 
   if (!cart?.items?.length) {
-    return <EmptyState title="Gio hang trong" description="Hay them san pham de bat dau mua sam." />;
+    return <EmptyState title="Giỏ hàng trống" description="Hãy thêm sản phẩm để bắt đầu mua sắm." />;
   }
 
   const updateQty = async (itemId, quantity) => {
@@ -20,17 +20,17 @@ export default function CartPage() {
       await cartApi.updateItem(itemId, { quantity });
       refreshCart();
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Khong cap nhat duoc so luong");
+      toast.error(error?.response?.data?.message || "Không cập nhật được số lượng");
     }
   };
 
   const removeItem = async (itemId) => {
     try {
       await cartApi.removeItem(itemId);
-      toast.success("Da xoa san pham");
+      toast.success("Đã xóa sản phẩm");
       refreshCart();
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Khong xoa duoc san pham");
+      toast.error(error?.response?.data?.message || "Không xóa được sản phẩm");
     }
   };
 
@@ -40,30 +40,30 @@ export default function CartPage() {
     if (!code) return;
     try {
       await cartApi.applyCoupon(code);
-      toast.success("Da ap dung coupon");
+      toast.success("Đã áp dụng mã giảm giá");
       setCouponCode("");
       refreshCart();
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Coupon khong hop le");
+      toast.error(error?.response?.data?.message || "Mã giảm giá không hợp lệ");
     }
   };
 
   const clearCoupon = async () => {
     try {
       await cartApi.clearCoupon();
-      toast.success("Da bo coupon");
+      toast.success("Đã bỏ mã giảm giá");
       refreshCart();
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Khong bo duoc coupon");
+      toast.error(error?.response?.data?.message || "Không bỏ được mã giảm giá");
     }
   };
 
   return (
     <div className="grid gap-5 lg:grid-cols-[2fr,1fr]">
       <section className="card space-y-4 p-5">
-        <h1 className="font-heading text-2xl font-bold text-slate-900">Gio hang cua ban</h1>
+        <h1 className="font-heading text-2xl font-bold text-slate-900">Giỏ hàng của bạn</h1>
         {cart.items.map((item) => (
-          <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-rose-100 p-3">
+          <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-cyan-100 p-3">
             <div>
               <p className="font-semibold text-slate-900">{item.productName}</p>
               <p className="text-sm text-slate-500">{Number(item.unitPrice).toLocaleString()} VND</p>
@@ -80,7 +80,7 @@ export default function CartPage() {
             <div className="text-right">
               <p className="font-semibold text-primary-700">{Number(item.lineTotal).toLocaleString()} VND</p>
               <button className="text-xs font-semibold text-primary-600 hover:text-primary-700" onClick={() => removeItem(item.id)}>
-                Xoa
+                Xóa
               </button>
             </div>
           </div>
@@ -88,12 +88,12 @@ export default function CartPage() {
       </section>
 
       <aside className="card space-y-3 p-5">
-        <h2 className="font-heading text-xl font-bold text-slate-900">Tong ket</h2>
+        <h2 className="font-heading text-xl font-bold text-slate-900">Tổng kết</h2>
         <div className="space-y-2 text-sm">
-          <p className="flex justify-between"><span>Tam tinh</span><span>{Number(cart.subtotal || 0).toLocaleString()} VND</span></p>
-          <p className="flex justify-between"><span>Giam gia</span><span>- {Number(cart.discount || 0).toLocaleString()} VND</span></p>
-          <p className="flex justify-between"><span>Van chuyen</span><span>{Number(cart.shippingFee || 0).toLocaleString()} VND</span></p>
-          <p className="flex justify-between border-t border-rose-200 pt-2 text-base font-bold text-primary-700"><span>Thanh tien</span><span>{Number(cart.total || 0).toLocaleString()} VND</span></p>
+          <p className="flex justify-between"><span>Tạm tính</span><span>{Number(cart.subtotal || 0).toLocaleString()} VND</span></p>
+          <p className="flex justify-between"><span>Giảm giá</span><span>- {Number(cart.discount || 0).toLocaleString()} VND</span></p>
+          <p className="flex justify-between"><span>Vận chuyển</span><span>{Number(cart.shippingFee || 0).toLocaleString()} VND</span></p>
+          <p className="flex justify-between border-t border-cyan-200 pt-2 text-base font-bold text-primary-700"><span>Thành tiền</span><span>{Number(cart.total || 0).toLocaleString()} VND</span></p>
         </div>
         <form className="flex gap-2" onSubmit={applyCoupon}>
           <input
@@ -102,12 +102,12 @@ export default function CartPage() {
             value={couponCode}
             onChange={(event) => setCouponCode(event.target.value.toUpperCase())}
           />
-          <button className="btn-secondary" type="submit">Ap dung</button>
+          <button className="btn-secondary" type="submit">Áp dụng</button>
         </form>
         {(cart.discount || 0) > 0 && (
-          <button className="btn-ghost w-full" onClick={clearCoupon}>Bo ma giam gia</button>
+          <button className="btn-ghost w-full" onClick={clearCoupon}>Bỏ mã giảm giá</button>
         )}
-        <button className="btn-primary w-full" onClick={() => navigate("/checkout")}>Thanh toan</button>
+        <button className="btn-primary w-full" onClick={() => navigate("/checkout")}>Thanh toán</button>
         <Link to="/products" className="block text-center text-sm font-semibold text-primary-700 hover:text-primary-600">Tiep tuc mua sam</Link>
       </aside>
     </div>

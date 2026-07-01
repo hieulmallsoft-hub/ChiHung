@@ -61,7 +61,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new BadRequestException("Email already exists");
+            throw new BadRequestException("Email đã tồn tại");
         }
 
         User user = new User();
@@ -72,7 +72,7 @@ public class AuthServiceImpl implements AuthService {
         user.setStatus(UserStatus.ACTIVE);
 
         Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
-                .orElseThrow(() -> new ResourceNotFoundException("ROLE_USER not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy vai trò ROLE_USER"));
         user.getRoles().add(userRole);
 
         user = userRepository.save(user);
@@ -89,10 +89,10 @@ public class AuthServiceImpl implements AuthService {
         );
 
         User user = userRepository.findByEmailAndDeletedFalse(authentication.getName())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
 
         if (!user.isEnabled()) {
-            throw new BadRequestException("Account is locked");
+            throw new BadRequestException("Tài khoản đã bị khóa");
         }
 
         String accessToken = jwtService.generateAccessToken(toUserDetails(user));
@@ -104,15 +104,15 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse refreshToken(RefreshTokenRequest request) {
         RefreshToken refreshTokenEntity = refreshTokenRepository.findByTokenAndRevokedFalse(request.getRefreshToken())
-                .orElseThrow(() -> new BadRequestException("Invalid refresh token"));
+                .orElseThrow(() -> new BadRequestException("Refresh token không hợp lệ"));
 
         if (refreshTokenEntity.getExpiryDate().isBefore(LocalDateTime.now())) {
-            throw new BadRequestException("Refresh token has expired");
+            throw new BadRequestException("Refresh token đã hết hạn");
         }
 
         User user = refreshTokenEntity.getUser();
         if (!jwtService.isRefreshTokenValid(request.getRefreshToken(), user.getEmail())) {
-            throw new BadRequestException("Refresh token verification failed");
+            throw new BadRequestException("Xác minh refresh token thất bại");
         }
 
         String newAccessToken = jwtService.generateAccessToken(toUserDetails(user));
@@ -132,10 +132,10 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public void changePassword(String email, ChangePasswordRequest request) {
         User user = userRepository.findByEmailAndDeletedFalse(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
 
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-            throw new BadRequestException("Current password is incorrect");
+            throw new BadRequestException("Mật khẩu hiện tại không đúng");
         }
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
@@ -146,7 +146,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public String forgotPassword(ForgotPasswordRequest request) {
         User user = userRepository.findByEmailAndDeletedFalse(request.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("Email not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy email"));
 
         String code = String.valueOf(100000 + new Random().nextInt(900000));
         resetCodeStore.put(user.getEmail(), code);
@@ -158,11 +158,11 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
         User user = userRepository.findByEmailAndDeletedFalse(request.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("Email not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy email"));
 
         String validCode = resetCodeStore.get(user.getEmail());
         if (validCode == null || !validCode.equals(request.getResetCode())) {
-            throw new BadRequestException("Invalid reset code");
+            throw new BadRequestException("Mã đặt lại không hợp lệ");
         }
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));

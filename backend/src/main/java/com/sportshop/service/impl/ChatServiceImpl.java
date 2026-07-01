@@ -1,5 +1,6 @@
 package com.sportshop.service.impl;
 
+import com.sportshop.chatbot.ChatUserMessageCreatedEvent;
 import com.sportshop.dto.chat.ChatRoomResponse;
 import com.sportshop.dto.chat.MessageResponse;
 import com.sportshop.dto.chat.SendMessageRequest;
@@ -18,6 +19,7 @@ import com.sportshop.service.ChatService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,17 +36,20 @@ public class ChatServiceImpl implements ChatService {
     private final MessageRepository messageRepository;
     private final ChatMapper chatMapper;
     private final SimpMessagingTemplate messagingTemplate;
+    private final ApplicationEventPublisher eventPublisher;
 
     public ChatServiceImpl(UserRepository userRepository,
                            ChatRoomRepository chatRoomRepository,
                            MessageRepository messageRepository,
                            ChatMapper chatMapper,
-                           SimpMessagingTemplate messagingTemplate) {
+                           SimpMessagingTemplate messagingTemplate,
+                           ApplicationEventPublisher eventPublisher) {
         this.userRepository = userRepository;
         this.chatRoomRepository = chatRoomRepository;
         this.messageRepository = messageRepository;
         this.chatMapper = chatMapper;
         this.messagingTemplate = messagingTemplate;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -52,7 +57,7 @@ public class ChatServiceImpl implements ChatService {
     public ChatRoomResponse openRoomForCurrentUser(String email) {
         User user = getUser(email);
         if (isAdmin(user)) {
-            throw new BadRequestException("Admin cannot open user room");
+            throw new BadRequestException("Admin không thể mở phòng chat của khách hàng");
         }
 
         List<ChatRoom> openRooms = chatRoomRepository.findByUserAndStatusOrderByLastMessageAtDesc(user, ChatRoomStatus.OPEN);
@@ -63,6 +68,7 @@ public class ChatServiceImpl implements ChatService {
             newRoom.setUser(user);
             newRoom.setStatus(ChatRoomStatus.OPEN);
             newRoom.setLastMessageAt(LocalDateTime.now());
+            newRoom.setBotEnabled(true);
             room = chatRoomRepository.save(newRoom);
         } else {
             room = openRooms.get(0);
@@ -113,7 +119,7 @@ public class ChatServiceImpl implements ChatService {
     public Page<MessageResponse> getMessages(String email, UUID roomId, int page, int size) {
         User user = getUser(email);
         ChatRoom room = chatRoomRepository.findById(roomId)
-                .orElseThrow(() -> new ResourceNotFoundException("Room not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phòng chat"));
         ensurePermission(user, room);
 
         return messageRepository.findByRoomOrderByCreatedAtAsc(room, PageRequest.of(page, size))
@@ -125,7 +131,7 @@ public class ChatServiceImpl implements ChatService {
     public MessageResponse sendMessage(String email, SendMessageRequest request) {
         User sender = getUser(email);
         ChatRoom room = chatRoomRepository.findById(request.getRoomId())
-                .orElseThrow(() -> new ResourceNotFoundException("Room not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phòng chat"));
         ensurePermission(sender, room);
 
         Message message = new Message();
@@ -135,6 +141,8 @@ public class ChatServiceImpl implements ChatService {
 
         if (isAdmin(sender)) {
             room.setAssignedAdmin(sender);
+            room.setBotEnabled(false);
+            room.setBotHandoffAt(LocalDateTime.now());
             room.setUnreadUserCount(room.getUnreadUserCount() + 1);
             message.setReadByAdmin(true);
             message.setReadByUser(false);
@@ -151,6 +159,10 @@ public class ChatServiceImpl implements ChatService {
         MessageResponse response = chatMapper.toMessageResponse(message);
         messagingTemplate.convertAndSend("/topic/chat/" + room.getId(), response);
 
+        if (!isAdmin(sender)) {
+            eventPublisher.publishEvent(new ChatUserMessageCreatedEvent(room.getId(), message.getId()));
+        }
+
         return response;
     }
 
@@ -159,7 +171,7 @@ public class ChatServiceImpl implements ChatService {
     public void markRead(String email, UUID roomId) {
         User user = getUser(email);
         ChatRoom room = chatRoomRepository.findById(roomId)
-                .orElseThrow(() -> new ResourceNotFoundException("Room not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phòng chat"));
         ensurePermission(user, room);
 
         var messages = messageRepository.findByRoom(room);
@@ -179,7 +191,7 @@ public class ChatServiceImpl implements ChatService {
     @Transactional
     public ChatRoomResponse resolveRoom(UUID roomId) {
         ChatRoom room = chatRoomRepository.findById(roomId)
-                .orElseThrow(() -> new ResourceNotFoundException("Room not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phòng chat"));
 
         room.setStatus(ChatRoomStatus.RESOLVED);
         room.setResolvedAt(LocalDateTime.now());
@@ -192,10 +204,10 @@ public class ChatServiceImpl implements ChatService {
     @Transactional
     public MessageResponse editMessageAsAdmin(UUID messageId, String content) {
         Message message = messageRepository.findById(messageId)
-                .orElseThrow(() -> new ResourceNotFoundException("Message not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tin nhắn"));
 
         if (message.isDeleted()) {
-            throw new BadRequestException("Message already deleted");
+            throw new BadRequestException("Tin nhắn đã bị xóa");
         }
 
         message.setContent(content.trim());
@@ -211,7 +223,7 @@ public class ChatServiceImpl implements ChatService {
     @Transactional
     public MessageResponse deleteMessageAsAdmin(UUID messageId) {
         Message message = messageRepository.findById(messageId)
-                .orElseThrow(() -> new ResourceNotFoundException("Message not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tin nhắn"));
 
         if (!message.isDeleted()) {
             message.setDeleted(true);
@@ -229,7 +241,7 @@ public class ChatServiceImpl implements ChatService {
             return;
         }
         if (!room.getUser().getId().equals(user.getId())) {
-            throw new ForbiddenException("You are not allowed to access this room");
+            throw new ForbiddenException("Bạn không có quyền truy cập phòng chat này");
         }
     }
 
@@ -239,6 +251,6 @@ public class ChatServiceImpl implements ChatService {
 
     private User getUser(String email) {
         return userRepository.findByEmailAndDeletedFalse(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
     }
 }

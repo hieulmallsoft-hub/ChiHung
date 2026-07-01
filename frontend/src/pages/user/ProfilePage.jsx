@@ -23,7 +23,7 @@ export default function ProfilePage() {
       setProfile(profileRes.data.data);
       setAddresses(addressRes.data.data || []);
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Khong tai duoc thong tin tai khoan");
+      toast.error(error?.response?.data?.message || "Không tải được thông tin tài khoản");
     }
   };
 
@@ -34,9 +34,9 @@ export default function ProfilePage() {
   const saveProfile = async () => {
     try {
       await userApi.updateProfile(profile);
-      toast.success("Cap nhat ho so thanh cong");
+      toast.success("Cập nhật ho so thanh cong");
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Cap nhat ho so that bai");
+      toast.error(error?.response?.data?.message || "Cập nhật ho so that bai");
     }
   };
 
@@ -52,10 +52,10 @@ export default function ProfilePage() {
         defaultAddress: addresses.length === 0,
       });
       setAddressForm(initialAddressForm);
-      toast.success("Da them dia chi");
+      toast.success("Đã thêm địa chỉ");
       loadData();
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Khong the them dia chi");
+      toast.error(error?.response?.data?.message || "Không thể thêm địa chỉ");
     } finally {
       setSavingAddress(false);
     }
@@ -64,10 +64,10 @@ export default function ProfilePage() {
   const deleteAddress = async (id) => {
     try {
       await userApi.deleteAddress(id);
-      toast.success("Da xoa dia chi");
+      toast.success("Đã xóa địa chỉ");
       loadData();
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Khong the xoa dia chi");
+      toast.error(error?.response?.data?.message || "Không thể xóa địa chỉ");
     }
   };
 
@@ -75,9 +75,9 @@ export default function ProfilePage() {
     try {
       await userApi.changePassword(passwordForm);
       setPasswordForm({ currentPassword: "", newPassword: "" });
-      toast.success("Da doi mat khau");
+      toast.success("Đã đổi mật khẩu");
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Khong the doi mat khau");
+      toast.error(error?.response?.data?.message || "Không thể đổi mật khẩu");
     }
   };
 
@@ -87,31 +87,31 @@ export default function ProfilePage() {
     <div className="grid gap-5 lg:grid-cols-2">
       <section className="card space-y-3 p-5">
         <h1 className="font-heading text-2xl font-bold text-slate-900">Ho so ca nhan</h1>
-        <div className="rounded-xl border border-rose-100 bg-rose-50 p-3 text-sm text-slate-600">
-          Cap nhat thong tin de nhan ho tro va giao hang nhanh hon.
+        <div className="rounded-xl border border-cyan-100 bg-cyan-50 p-3 text-sm text-slate-600">
+          Cập nhật thông tin để nhận hỗ trợ và giao hàng nhanh hơn.
         </div>
         <input value={profile.fullName || ""} onChange={(e) => setProfile((p) => ({ ...p, fullName: e.target.value }))} />
         <input value={profile.email || ""} readOnly className="cursor-not-allowed bg-slate-100 text-slate-500" />
         <input value={profile.phone || ""} onChange={(e) => setProfile((p) => ({ ...p, phone: e.target.value }))} />
         <input value={profile.avatarUrl || ""} placeholder="Avatar URL" onChange={(e) => setProfile((p) => ({ ...p, avatarUrl: e.target.value }))} />
-        <button className="btn-primary" onClick={saveProfile}>Luu thay doi</button>
+        <button className="btn-primary" onClick={saveProfile}>Lưu thay đổi</button>
       </section>
 
       <section className="space-y-5">
         <div className="card space-y-3 p-5">
           <div className="flex items-center justify-between">
-            <h2 className="font-heading text-xl font-bold text-slate-900">Dia chi cua toi</h2>
+            <h2 className="font-heading text-xl font-bold text-slate-900">Địa chỉ của tôi</h2>
           </div>
-          <form onSubmit={addAddress} className="grid gap-2 rounded-xl border border-rose-100 bg-rose-50 p-3 md:grid-cols-2">
+          <form onSubmit={addAddress} className="grid gap-2 rounded-xl border border-cyan-100 bg-cyan-50 p-3 md:grid-cols-2">
             <input
               required
-              placeholder="Ten nguoi nhan"
+              placeholder="Tên người nhận"
               value={addressForm.receiverName}
               onChange={(e) => setAddressForm((p) => ({ ...p, receiverName: e.target.value }))}
             />
             <input
               required
-              placeholder="So dien thoai"
+              placeholder="Số điện thoại"
               type="tel"
               inputMode="numeric"
               pattern="[0-9]*"
@@ -120,29 +120,29 @@ export default function ProfilePage() {
             />
             <input
               required
-              placeholder="Dia chi cu the"
+              placeholder="Địa chỉ cụ thể"
               className="md:col-span-2"
               value={addressForm.line1}
               onChange={(e) => setAddressForm((p) => ({ ...p, line1: e.target.value }))}
             />
             <input
               required
-              placeholder="Thanh pho"
+              placeholder="Thành phố"
               value={addressForm.city}
               onChange={(e) => setAddressForm((p) => ({ ...p, city: e.target.value }))}
             />
             <input
-              placeholder="Quoc gia"
+              placeholder="Quốc gia"
               value={addressForm.country}
               onChange={(e) => setAddressForm((p) => ({ ...p, country: e.target.value }))}
             />
             <button type="submit" className="btn-secondary md:col-span-2" disabled={savingAddress}>
-              {savingAddress ? "Dang luu..." : "Them dia chi"}
+              {savingAddress ? "Đang lưu..." : "Thêm địa chỉ"}
             </button>
           </form>
           <div className="space-y-2">
             {addresses.map((address) => (
-              <div key={address.id} className="rounded-xl border border-rose-100 bg-white p-3 text-sm">
+              <div key={address.id} className="rounded-xl border border-cyan-100 bg-white p-3 text-sm">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="font-semibold">{address.receiverName} - {address.receiverPhone}</p>
@@ -150,7 +150,7 @@ export default function ProfilePage() {
                     {address.defaultAddress && <span className="badge mt-2">Mac dinh</span>}
                   </div>
                   <button className="text-xs font-semibold text-primary-700 hover:text-primary-600" onClick={() => deleteAddress(address.id)}>
-                    Xoa
+                    Xóa
                   </button>
                 </div>
               </div>
@@ -159,10 +159,10 @@ export default function ProfilePage() {
         </div>
 
         <div className="card space-y-3 p-5">
-          <h2 className="font-heading text-xl font-bold text-slate-900">Doi mat khau</h2>
-          <input type="password" placeholder="Mat khau hien tai" value={passwordForm.currentPassword} onChange={(e) => setPasswordForm((p) => ({ ...p, currentPassword: e.target.value }))} />
-          <input type="password" placeholder="Mat khau moi" value={passwordForm.newPassword} onChange={(e) => setPasswordForm((p) => ({ ...p, newPassword: e.target.value }))} />
-          <button className="btn-primary" onClick={changePassword}>Cap nhat mat khau</button>
+          <h2 className="font-heading text-xl font-bold text-slate-900">Đổi mật khẩu</h2>
+          <input type="password" placeholder="Mật khẩu hiện tại" value={passwordForm.currentPassword} onChange={(e) => setPasswordForm((p) => ({ ...p, currentPassword: e.target.value }))} />
+          <input type="password" placeholder="Mật khẩu mới" value={passwordForm.newPassword} onChange={(e) => setPasswordForm((p) => ({ ...p, newPassword: e.target.value }))} />
+          <button className="btn-primary" onClick={changePassword}>Cập nhật mật khẩu</button>
         </div>
       </section>
     </div>

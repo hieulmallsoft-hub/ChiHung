@@ -21,6 +21,19 @@ const statusLabels = {
   CANCELLED: "Đã hủy",
 };
 
+const paymentMethodLabels = {
+  COD: "Thanh toán khi nhận hàng",
+  BANK_TRANSFER: "Chuyển khoản ngân hàng",
+  E_WALLET_MOCK: "Ví điện tử demo",
+};
+
+const paymentStatusLabels = {
+  PENDING: "Chờ thanh toán",
+  PAID: "Đã thanh toán",
+  FAILED: "Thanh toán thất bại",
+  REFUNDED: "Đã hoàn tiền",
+};
+
 const formatDateTime = (value) =>
   value ? new Date(value).toLocaleString("vi-VN") : "Chưa cập nhật";
 
@@ -113,14 +126,14 @@ export default function OrderDetailPage() {
         <h2 className="mb-4 font-heading text-xl font-bold">Hành trình đơn hàng</h2>
         {isCancelled ? (
           <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-700">
-            Đơn hàng đã bị hủy. Nếu đã thanh toán, trạng thái thanh toán sẽ được chuyển sang hoàn tiền.
+            Đơn hàng đã bị hủy. Nếu bạn cần đổi trả hoặc hỗ trợ hoàn tiền, hãy liên hệ bộ phận hỗ trợ.
           </div>
         ) : (
           <div className="grid gap-3 md:grid-cols-5">
             {orderSteps.map((step, index) => {
               const done = index <= currentStep;
               return (
-                <div key={step.id} className={`rounded-2xl border p-3 ${done ? "border-primary-200 bg-rose-50" : "border-slate-200 bg-white"}`}>
+                <div key={step.id} className={`rounded-2xl border p-3 ${done ? "border-primary-200 bg-cyan-50" : "border-slate-200 bg-white"}`}>
                   <div className={`mb-2 flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${done ? "bg-primary-700 text-white" : "bg-slate-100 text-slate-400"}`}>
                     {index + 1}
                   </div>
@@ -155,7 +168,7 @@ export default function OrderDetailPage() {
         <h2 className="mb-3 font-heading text-xl font-bold">Danh sách sản phẩm</h2>
         <div className="space-y-3">
           {order.items.map((item) => (
-            <div key={item.productId} className="flex justify-between rounded-lg border border-rose-100 p-3 text-sm">
+            <div key={item.productId} className="flex justify-between rounded-lg border border-cyan-100 p-3 text-sm">
               <div>
                 <p className="font-semibold">{item.productName}</p>
                 <p className="text-slate-500">Số lượng: {item.quantity}</p>
@@ -168,8 +181,8 @@ export default function OrderDetailPage() {
 
       <section className="card p-5">
         <h2 className="mb-3 font-heading text-xl font-bold">Tổng kết thanh toán</h2>
-        <p className="flex justify-between text-sm"><span>Phương thức</span><span>{order.paymentMethod}</span></p>
-        <p className="flex justify-between text-sm"><span>Trạng thái thanh toán</span><span>{order.paymentStatus}</span></p>
+        <p className="flex justify-between text-sm"><span>Phương thức</span><span>{paymentMethodLabels[order.paymentMethod] || order.paymentMethod}</span></p>
+        <p className="flex justify-between text-sm"><span>Trạng thái thanh toán</span><span>{paymentStatusLabels[order.paymentStatus] || order.paymentStatus}</span></p>
         <p className="flex justify-between text-sm"><span>Tạm tính</span><span>{Number(order.subtotal).toLocaleString()} VND</span></p>
         <p className="flex justify-between text-sm"><span>Phí vận chuyển</span><span>{Number(order.shippingFee).toLocaleString()} VND</span></p>
         <p className="flex justify-between text-sm"><span>Giảm giá</span><span>- {Number(order.discountAmount).toLocaleString()} VND</span></p>

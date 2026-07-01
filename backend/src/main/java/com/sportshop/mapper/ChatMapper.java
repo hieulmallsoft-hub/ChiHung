@@ -20,6 +20,8 @@ public class ChatMapper {
                 .lastMessageAt(room.getLastMessageAt())
                 .unreadUserCount(room.getUnreadUserCount())
                 .unreadAdminCount(room.getUnreadAdminCount())
+                .botEnabled(!Boolean.FALSE.equals(room.getBotEnabled()))
+                .botHandoffAt(room.getBotHandoffAt())
                 .build();
     }
 
@@ -29,6 +31,7 @@ public class ChatMapper {
                 .roomId(message.getRoom().getId())
                 .senderId(message.getSender().getId())
                 .senderName(message.getSender().getFullName())
+                .messageType(message.getMessageType())
                 .content(message.isDeleted() ? null : message.getContent())
                 .deleted(message.isDeleted())
                 .editedAt(message.getEditedAt())

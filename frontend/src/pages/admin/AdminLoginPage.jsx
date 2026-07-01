@@ -1,4 +1,4 @@
-﻿import { useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import LoginPage from "../user/LoginPage";
@@ -18,7 +18,7 @@ export default function AdminLoginPage() {
       return;
     }
 
-    toast.error("Tai khoan hien tai khong co quyen admin. Vui long dang nhap bang tai khoan admin.");
+    toast.error("Tài khoản hiện tại không có quyền quản trị. Vui lòng đăng nhập bằng tài khoản quản trị.");
     clearSession();
   }, [user, hasRole, clearSession, navigate]);
 
@@ -28,14 +28,14 @@ export default function AdminLoginPage() {
       <div className="mx-auto flex min-h-screen max-w-6xl items-center px-4 py-8">
         <div className="grid w-full gap-6 lg:grid-cols-[1.1fr,1fr]">
           <div className="admin-card">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-rose-200">Admin Access</p>
-            <h1 className="mt-3 font-heading text-3xl font-bold text-white">Dang nhap Admin</h1>
-            <p className="mt-3 text-sm text-slate-300">He thong quan tri danh cho quan ly va van hanh.</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-200">Truy cập quản trị</p>
+            <h1 className="mt-3 font-heading text-3xl font-bold text-white">Đăng nhập quản trị</h1>
+            <p className="mt-3 text-sm text-slate-300">Hệ thống quản trị dành cho quản lý và vận hành.</p>
             <div className="mt-6 grid gap-3">
               <div className="admin-subtle">
-                <p className="text-xs text-slate-300">Goi y tai khoan demo</p>
+                <p className="text-xs text-slate-300">Gợi ý tài khoản demo</p>
                 <p className="text-sm font-semibold text-white">admin@sportshop.vn</p>
-                <p className="text-xs text-slate-400">Mat khau: admin123</p>
+                <p className="text-xs text-slate-400">Mật khẩu: admin123</p>
               </div>
             </div>
           </div>

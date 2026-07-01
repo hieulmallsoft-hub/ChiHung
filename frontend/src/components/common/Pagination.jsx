@@ -10,7 +10,7 @@ export default function Pagination({ pageInfo, onPageChange }) {
       >
         Truoc
       </button>
-      <span className="rounded-full border border-rose-100 bg-white px-3 py-1 text-sm font-semibold text-slate-600 shadow-sm">
+      <span className="rounded-full border border-cyan-100 bg-white px-3 py-1 text-sm font-semibold text-slate-600 shadow-sm">
         Trang {pageInfo.number + 1} / {pageInfo.totalPages}
       </span>
       <button

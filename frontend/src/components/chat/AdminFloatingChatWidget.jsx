@@ -5,6 +5,12 @@ import { chatApi } from "../../api/chatApi";
 import { createChatStompClient, mergeMessageList } from "../../utils/chatSocket";
 import { useAuth } from "../../hooks/useAuth";
 
+const chatRoomStatusLabels = {
+  OPEN: "Đang mở",
+  RESOLVED: "Đã xử lý",
+  CLOSED: "Đã đóng",
+};
+
 export default function AdminFloatingChatWidget() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
@@ -36,7 +42,7 @@ export default function AdminFloatingChatWidget() {
 
       if (unreadInitializedRef.current) {
         if (unreadTotal > previousUnreadRef.current && !openRef.current) {
-          toast.success("Co tin nhan moi tu user");
+          toast.success("Có tin nhắn mới từ khách hàng");
         }
       } else {
         unreadInitializedRef.current = true;
@@ -53,7 +59,7 @@ export default function AdminFloatingChatWidget() {
       });
     } catch (error) {
       if (!silent) {
-        toast.error(error?.response?.data?.message || "Khong tai duoc danh sach chat");
+        toast.error(error?.response?.data?.message || "Không tải được danh sách chat");
       }
     }
   }, []);
@@ -68,7 +74,7 @@ export default function AdminFloatingChatWidget() {
       setMessages(response?.data?.data?.content || []);
     } catch (error) {
       if (!silent) {
-        toast.error(error?.response?.data?.message || "Khong tai duoc tin nhan");
+        toast.error(error?.response?.data?.message || "Không tải được tin nhắn");
       }
     }
   }, []);
@@ -93,7 +99,7 @@ export default function AdminFloatingChatWidget() {
           const isFromUser = payload?.senderId && payload.senderId !== user?.id;
 
           if (isNew && isFromUser && !openRef.current) {
-            toast.success("Co tin nhan moi tu khach hang");
+            toast.success("Có tin nhắn mới từ khách hàng");
           }
 
           return next;
@@ -236,7 +242,7 @@ export default function AdminFloatingChatWidget() {
       await chatApi.markRead(selectedRoomId).catch(() => undefined);
       await loadRooms({ silent: true });
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Gui tin nhan that bai");
+      toast.error(error?.response?.data?.message || "Gửi tin nhắn thất bại");
     }
   };
 
@@ -247,7 +253,7 @@ export default function AdminFloatingChatWidget() {
         className="fixed bottom-6 right-6 z-50 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary-700 to-primary-600 px-5 py-3 text-sm font-semibold text-white shadow-glow transition hover:-translate-y-0.5"
       >
         <span className="grid h-5 w-5 place-items-center rounded-full bg-white/20 text-[11px]">A</span>
-        Chat Admin
+        Chat quản trị
         {totalUnread > 0 && (
           <span className="ml-2 inline-flex min-w-6 items-center justify-center rounded-full bg-white px-1.5 py-0.5 text-xs font-bold text-primary-700">
             {totalUnread > 99 ? "99+" : totalUnread}
@@ -258,37 +264,39 @@ export default function AdminFloatingChatWidget() {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-[440px] overflow-hidden rounded-3xl border border-rose-100 bg-white/95 shadow-2xl backdrop-blur">
+    <div className="fixed bottom-6 right-6 z-50 w-[440px] overflow-hidden rounded-3xl border border-cyan-100 bg-white/95 shadow-2xl backdrop-blur">
       <div className="flex items-center justify-between bg-gradient-to-r from-primary-700 to-primary-600 px-4 py-3 text-white">
-        <p className="font-semibold">Chat ho tro khach hang</p>
+        <p className="font-semibold">Hỗ trợ khách hàng</p>
         <div className="flex items-center gap-2">
           <span
             className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-              status === "connected" ? "bg-emerald-200 text-emerald-700" : "bg-amber-200 text-amber-700"
+              status === "connected" ? "bg-teal-200 text-teal-700" : "bg-amber-200 text-amber-700"
             }`}
           >
-            {status === "connected" ? "Realtime" : "Fallback"}
+            {status === "connected" ? "Thời gian thực" : "Dự phòng"}
           </span>
           <button onClick={() => setOpen(false)} className="text-sm">
-            Dong
+            Đóng
           </button>
         </div>
       </div>
 
       <div className="grid h-[420px] grid-cols-[150px,1fr]">
-        <aside className="border-r border-rose-100 bg-gradient-to-b from-rose-50 to-white p-2">
-          <div className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Rooms</div>
+        <aside className="border-r border-cyan-100 bg-gradient-to-b from-cyan-50 to-white p-2">
+          <div className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Phòng chat</div>
           <div className="space-y-1 overflow-y-auto">
             {rooms.map((room) => (
               <button
                 key={room.id}
                 onClick={() => setSelectedRoomId(room.id)}
                 className={`w-full rounded-lg px-2 py-2 text-left text-xs transition ${
-                  selectedRoomId === room.id ? "bg-primary-700 text-white" : "bg-white text-slate-700 hover:bg-rose-100"
+                  selectedRoomId === room.id ? "bg-primary-700 text-white" : "bg-white text-slate-700 hover:bg-cyan-100"
                 }`}
               >
                 <p className="truncate font-semibold">{room.userName}</p>
-                <p className={`${selectedRoomId === room.id ? "text-rose-100" : "text-slate-500"}`}>{room.status}</p>
+                <p className={`${selectedRoomId === room.id ? "text-cyan-100" : "text-slate-500"}`}>
+                  {chatRoomStatusLabels[room.status] || room.status}
+                </p>
                 {(room.unreadAdminCount || 0) > 0 && (
                   <span
                     className={`mt-1 inline-flex rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
@@ -304,45 +312,45 @@ export default function AdminFloatingChatWidget() {
         </aside>
 
         <section className="flex flex-col">
-          <div className="border-b border-rose-100 px-3 py-2 text-sm font-semibold text-slate-700">
-            {selectedRoom ? `Khach: ${selectedRoom.userName}` : "Chon room de chat"}
+          <div className="border-b border-cyan-100 px-3 py-2 text-sm font-semibold text-slate-700">
+            {selectedRoom ? `Khách hàng: ${selectedRoom.userName}` : "Chọn phòng để chat"}
           </div>
 
-          <div className="flex-1 space-y-2 overflow-y-auto bg-gradient-to-b from-rose-50 to-white p-3">
-            {messages.length === 0 && <p className="text-xs text-slate-500">Chua co tin nhan.</p>}
+          <div className="flex-1 space-y-2 overflow-y-auto bg-gradient-to-b from-cyan-50 to-white p-3">
+            {messages.length === 0 && <p className="text-xs text-slate-500">Chưa có tin nhắn.</p>}
             {messages.map((msg) => {
               const mine = msg.senderId === user?.id;
               const isDeleted = Boolean(msg.deleted);
               const isEdited = Boolean(msg.editedAt);
-              const displayContent = isDeleted ? "Tin nhan da bi xoa" : msg.content;
+              const displayContent = isDeleted ? "Tin nhắn đã bị xóa" : msg.content;
               return (
                 <div
                   key={msg.id}
                   className={`max-w-[85%] rounded-xl px-3 py-2 text-xs shadow-sm ${
-                    mine ? "ml-auto bg-primary-700 text-white" : "border border-rose-100 bg-white text-slate-700"
+                    mine ? "ml-auto bg-primary-700 text-white" : "border border-cyan-100 bg-white text-slate-700"
                   }`}
                 >
                   <p className="text-[10px] opacity-70">{msg.senderName}</p>
                   <p className={isDeleted ? "italic opacity-70" : ""}>
                     {displayContent}
-                    {isEdited && !isDeleted && <span className="ml-1 text-[10px] opacity-70">(da sua)</span>}
+                    {isEdited && !isDeleted && <span className="ml-1 text-[10px] opacity-70">(đã sửa)</span>}
                   </p>
                 </div>
               );
             })}
           </div>
 
-          <div className="flex gap-2 border-t border-rose-100 p-3">
+          <div className="flex gap-2 border-t border-cyan-100 p-3">
             <input
               className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm"
               value={content}
               onChange={(event) => setContent(event.target.value)}
               onKeyDown={(event) => event.key === "Enter" && sendMessage()}
-              placeholder="Nhap phan hoi..."
+              placeholder="Nhập phản hồi..."
               disabled={!selectedRoomId}
             />
             <button className="btn-primary text-sm" onClick={sendMessage} disabled={!selectedRoomId}>
-              Gui
+              Gửi
             </button>
           </div>
         </section>

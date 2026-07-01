@@ -202,7 +202,7 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/80 shadow-[0_10px_35px_rgba(2,6,23,0.3)] backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-6">
-        {/* Brand Logo */}
+        {/* Logo thương hiệu */}
         <Link to="/" className="group flex shrink-0 items-center gap-3" onClick={closeMobile}>
           <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-sm font-black text-white shadow-[0_0_22px_rgba(244,63,94,0.4)] transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_25px_rgba(244,63,94,0.6)]">
             SS
@@ -213,7 +213,7 @@ export default function Navbar() {
           </div>
         </Link>
 
-        {/* Desktop Navigation Links */}
+        {/* Liên kết điều hướng desktop */}
         <nav className="hidden items-center gap-1.5 rounded-full border border-white/10 bg-white/5 p-1 lg:flex">
           <NavLink to="/" className={navItemClass}>
             <Home className="h-4 w-4" />
@@ -237,12 +237,12 @@ export default function Navbar() {
           )}
         </nav>
 
-        {/* Desktop Search Bar */}
+        {/* Thanh tìm kiếm desktop */}
         <div className="hidden min-w-[280px] max-w-md flex-1 md:block">
           {searchForm()}
         </div>
 
-        {/* Right Actions Menu */}
+        {/* Nhóm thao tác bên phải */}
         <div className="hidden shrink-0 items-center gap-3 md:flex">
           {isAuthenticated && (
             <span
@@ -324,7 +324,7 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile Menu Button */}
+        {/* Nút mở menu mobile */}
         <button
           className="ml-auto inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white transition hover:bg-white/[0.08] md:hidden"
           onClick={() => setMobileOpen((prev) => !prev)}
@@ -334,7 +334,7 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* Menu mobile */}
       {mobileOpen && (
         <div className="border-t border-white/10 bg-slate-950/95 px-4 pb-6 pt-4 md:hidden backdrop-blur-xl">
           <div className="flex flex-col gap-3">
@@ -436,7 +436,7 @@ export default function Navbar() {
                     onClick={closeMobile}
                   >
                     <ShieldCheck className="h-4 w-4" />
-                    Bảng điều khiển Admin
+                    Bảng điều khiển quản trị
                   </Link>
                 )}
                 <button 

@@ -23,23 +23,23 @@ public class AdminCouponController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<CouponResponse>>> getAll() {
-        return ResponseEntity.ok(ApiResponse.success("Coupon list", couponService.getAll()));
+        return ResponseEntity.ok(ApiResponse.success("Danh sách mã giảm giá", couponService.getAll()));
     }
 
     @PostMapping
     public ResponseEntity<ApiResponse<CouponResponse>> create(@Valid @RequestBody CouponRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Coupon created", couponService.create(request)));
+        return ResponseEntity.ok(ApiResponse.success("Đã tạo mã giảm giá", couponService.create(request)));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<CouponResponse>> update(@PathVariable UUID id,
                                                               @Valid @RequestBody CouponRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Coupon updated", couponService.update(id, request)));
+        return ResponseEntity.ok(ApiResponse.success("Đã cập nhật mã giảm giá", couponService.update(id, request)));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
         couponService.delete(id);
-        return ResponseEntity.ok(ApiResponse.success("Coupon deactivated", null));
+        return ResponseEntity.ok(ApiResponse.success("Đã vô hiệu hóa mã giảm giá", null));
     }
 }

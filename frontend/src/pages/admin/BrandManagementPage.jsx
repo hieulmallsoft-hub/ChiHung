@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { adminApi } from "../../api/adminApi";
 
@@ -19,7 +19,7 @@ export default function BrandManagementPage() {
     event.preventDefault();
     await adminApi.saveBrand(form);
     setForm({ name: "", description: "", active: true });
-    toast.success("Da tao brand");
+    toast.success("Đã tạo thương hiệu");
     load();
   };
 
@@ -32,31 +32,31 @@ export default function BrandManagementPage() {
     <div className="space-y-4">
       <div className="admin-card">
         <div className="mb-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-rose-200">Catalog</p>
-          <h1 className="mt-2 font-heading text-2xl font-bold text-white">Brand Management</h1>
-          <p className="mt-1 text-sm text-slate-300">Quan ly thuong hieu noi bat.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-200">Danh mục</p>
+          <h1 className="mt-2 font-heading text-2xl font-bold text-white">Quản lý thương hiệu</h1>
+          <p className="mt-1 text-sm text-slate-300">Quản lý thương hiệu nổi bật.</p>
         </div>
 
         <form className="grid gap-3 md:grid-cols-4" onSubmit={submit}>
           <input
             required
             className="admin-input"
-            placeholder="Ten brand"
+            placeholder="Tên thương hiệu"
             value={form.name}
             onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
           />
           <input
             className="admin-input md:col-span-2"
-            placeholder="Mo ta"
+            placeholder="Mô tả"
             value={form.description}
             onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
           />
-          <button className="btn-primary" type="submit">Them moi</button>
+          <button className="btn-primary" type="submit">Thêm mới</button>
         </form>
       </div>
 
       <div className="admin-card">
-        <h2 className="mb-4 font-heading text-lg font-semibold text-white">Danh sach brand</h2>
+        <h2 className="mb-4 font-heading text-lg font-semibold text-white">Danh sách thương hiệu</h2>
         <div className="space-y-3 text-sm">
           {brands.map((item) => (
             <div key={item.id} className="admin-subtle flex items-center justify-between">
@@ -64,8 +64,8 @@ export default function BrandManagementPage() {
                 <p className="font-semibold text-white">{item.name}</p>
                 <p className="text-xs text-slate-400">{item.slug}</p>
               </div>
-              <button className="text-sm font-semibold text-rose-300 hover:text-rose-200" onClick={() => remove(item.id)}>
-                Xoa
+              <button className="text-sm font-semibold text-cyan-300 hover:text-cyan-200" onClick={() => remove(item.id)}>
+                Xóa
               </button>
             </div>
           ))}

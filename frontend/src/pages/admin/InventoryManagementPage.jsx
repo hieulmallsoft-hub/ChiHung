@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { adminApi } from "../../api/adminApi";
 
@@ -23,7 +23,7 @@ export default function InventoryManagementPage() {
   };
 
   const adjustStock = async (product) => {
-    const quantity = window.prompt(`Nhap ton kho moi cho ${product.name}`, product.stockQuantity);
+    const quantity = window.prompt(`Nhập tồn kho mới cho ${product.name}`, product.stockQuantity);
     if (quantity === null) return;
     const parsedQuantity = Number(quantity);
     if (!Number.isInteger(parsedQuantity) || parsedQuantity < 0) {
@@ -55,9 +55,9 @@ export default function InventoryManagementPage() {
     <div className="grid gap-4 lg:grid-cols-[2fr,1fr]">
       <div className="admin-card">
         <div className="mb-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-rose-200">Inventory</p>
-          <h1 className="mt-2 font-heading text-2xl font-bold text-white">Inventory Management</h1>
-          <p className="mt-1 text-sm text-slate-300">Theo doi ton kho va dieu chinh nhanh.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-200">Tồn kho</p>
+          <h1 className="mt-2 font-heading text-2xl font-bold text-white">Quản lý tồn kho</h1>
+          <p className="mt-1 text-sm text-slate-300">Theo dõi tồn kho và điều chỉnh nhanh.</p>
           <input
             className="admin-input mt-4 w-full"
             value={keyword}
@@ -95,7 +95,7 @@ export default function InventoryManagementPage() {
       </div>
 
       <div className="admin-card">
-        <h2 className="mb-4 font-heading text-lg font-semibold text-white">Inventory Logs</h2>
+        <h2 className="mb-4 font-heading text-lg font-semibold text-white">Lịch sử tồn kho</h2>
         {selectedProduct ? (
           <div className="space-y-3 text-sm">
             {logs.map((log, index) => (
@@ -112,7 +112,7 @@ export default function InventoryManagementPage() {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-slate-400">Chon san pham de xem lich su ton kho.</p>
+          <p className="text-sm text-slate-400">Chọn sản phẩm để xem lịch sử tồn kho.</p>
         )}
       </div>
     </div>

@@ -22,6 +22,6 @@ public class PublicBrandController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<BrandResponse>>> getBrands() {
-        return ResponseEntity.ok(ApiResponse.success("Brand list", brandService.getActiveBrands()));
+        return ResponseEntity.ok(ApiResponse.success("Danh sách thương hiệu", brandService.getActiveBrands()));
     }
 }

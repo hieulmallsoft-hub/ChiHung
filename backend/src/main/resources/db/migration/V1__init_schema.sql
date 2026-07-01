@@ -251,6 +251,8 @@ CREATE TABLE chat_rooms (
     resolved_at TIMESTAMP,
     unread_user_count INTEGER NOT NULL DEFAULT 0,
     unread_admin_count INTEGER NOT NULL DEFAULT 0,
+    bot_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    bot_handoff_at TIMESTAMP,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
     CONSTRAINT fk_chat_rooms_user FOREIGN KEY (user_id) REFERENCES users(id),

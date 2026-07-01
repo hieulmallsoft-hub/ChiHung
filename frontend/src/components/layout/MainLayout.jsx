@@ -19,9 +19,9 @@ export default function MainLayout({ children }) {
             playsInline
           />
         </div>
-        <div className="absolute inset-0 bg-black/20"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/30"></div>
-        <div className="absolute inset-0 opacity-20 [background:radial-gradient(circle_at_center,rgba(255,255,255,0.1)_1px,transparent_1px)] [background-size:24px_24px]" />
+        <div className="absolute inset-0 bg-sky-950/40 mix-blend-overlay"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-sky-900/40 to-slate-950/40"></div>
+        <div className="absolute inset-0 opacity-20 [background:radial-gradient(circle_at_center,rgba(56,189,248,0.2)_1px,transparent_1px)] [background-size:24px_24px]" />
       </div>
 
       <Navbar />

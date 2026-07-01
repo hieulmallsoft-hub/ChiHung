@@ -17,11 +17,11 @@ export default function ResetPasswordPage() {
   const submit = async (event) => {
     event.preventDefault();
     if (form.newPassword.length < 6) {
-      toast.error("Mat khau moi toi thieu 6 ky tu");
+      toast.error("Mật khẩu mới tối thiểu 6 ký tự");
       return;
     }
     if (form.newPassword !== form.confirmPassword) {
-      toast.error("Xac nhan mat khau khong khop");
+      toast.error("Xác nhận mật khẩu không khớp");
       return;
     }
 
@@ -32,10 +32,10 @@ export default function ResetPasswordPage() {
         resetCode: form.resetCode,
         newPassword: form.newPassword,
       });
-      toast.success("Da dat lai mat khau");
+      toast.success("Đã đặt lại mật khẩu");
       navigate("/login");
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Khong the dat lai mat khau");
+      toast.error(error?.response?.data?.message || "Không thể đặt lại mật khẩu");
     } finally {
       setSubmitting(false);
     }
@@ -43,8 +43,8 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="mx-auto max-w-xl card p-6 md:p-8">
-      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary-700">Account recovery</p>
-      <h1 className="mt-2 font-heading text-2xl font-bold text-slate-900">Dat lai mat khau</h1>
+      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary-700">Khôi phục tài khoản</p>
+      <h1 className="mt-2 font-heading text-2xl font-bold text-slate-900">Đặt lại mật khẩu</h1>
       <form onSubmit={submit} className="mt-5 space-y-3">
         <input
           required
@@ -56,7 +56,7 @@ export default function ResetPasswordPage() {
         />
         <input
           required
-          placeholder="Ma reset"
+          placeholder="Mã đặt lại"
           value={form.resetCode}
           onChange={(event) => setForm((prev) => ({ ...prev, resetCode: event.target.value }))}
           className="w-full"
@@ -64,7 +64,7 @@ export default function ResetPasswordPage() {
         <input
           required
           type="password"
-          placeholder="Mat khau moi"
+          placeholder="Mật khẩu mới"
           value={form.newPassword}
           onChange={(event) => setForm((prev) => ({ ...prev, newPassword: event.target.value }))}
           className="w-full"
@@ -72,17 +72,17 @@ export default function ResetPasswordPage() {
         <input
           required
           type="password"
-          placeholder="Nhap lai mat khau moi"
+          placeholder="Nhập lại mật khẩu mới"
           value={form.confirmPassword}
           onChange={(event) => setForm((prev) => ({ ...prev, confirmPassword: event.target.value }))}
           className="w-full"
         />
         <button className="btn-primary w-full" type="submit" disabled={submitting}>
-          {submitting ? "Dang xu ly..." : "Cap nhat mat khau"}
+          {submitting ? "Đang xử lý..." : "Cập nhật mật khẩu"}
         </button>
       </form>
       <Link to="/login" className="mt-4 inline-block text-sm font-semibold text-primary-700 hover:text-primary-600">
-        Quay lai dang nhap
+        Quay lại đăng nhập
       </Link>
     </div>
   );

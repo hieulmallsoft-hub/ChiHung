@@ -29,42 +29,42 @@ public class AdminUserController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(ApiResponse.success("User list", userService.getUsers(keyword, page, size)));
+        return ResponseEntity.ok(ApiResponse.success("Danh sách người dùng", userService.getUsers(keyword, page, size)));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> getUser(@PathVariable UUID id) {
-        return ResponseEntity.ok(ApiResponse.success("User detail", userService.getUserById(id)));
+        return ResponseEntity.ok(ApiResponse.success("Chi tiết người dùng", userService.getUserById(id)));
     }
 
     @PostMapping
     public ResponseEntity<ApiResponse<UserResponse>> createUser(@Valid @RequestBody UserCreateRequest request,
                                                                 @RequestParam(defaultValue = "false") boolean admin) {
-        return ResponseEntity.ok(ApiResponse.success("User created", userService.createUser(request, admin)));
+        return ResponseEntity.ok(ApiResponse.success("Đã tạo người dùng", userService.createUser(request, admin)));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> updateUser(@PathVariable UUID id,
                                                                 @Valid @RequestBody UserUpdateRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("User updated", userService.updateUser(id, request)));
+        return ResponseEntity.ok(ApiResponse.success("Đã cập nhật người dùng", userService.updateUser(id, request)));
     }
 
     @PostMapping("/{id}/lock")
     public ResponseEntity<ApiResponse<Void>> lockUser(@PathVariable UUID id) {
         userService.lockUser(id);
-        return ResponseEntity.ok(ApiResponse.success("User locked", null));
+        return ResponseEntity.ok(ApiResponse.success("Đã khóa người dùng", null));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable UUID id) {
         userService.deleteUser(id);
-        return ResponseEntity.ok(ApiResponse.success("User deleted", null));
+        return ResponseEntity.ok(ApiResponse.success("Đã xóa người dùng", null));
     }
 
     @PostMapping("/{id}/reset-password")
     public ResponseEntity<ApiResponse<Void>> resetPassword(@PathVariable UUID id,
                                                            @Valid @RequestBody AdminResetPasswordRequest request) {
         userService.resetUserPassword(id, request.getNewPassword());
-        return ResponseEntity.ok(ApiResponse.success("Password reset", null));
+        return ResponseEntity.ok(ApiResponse.success("Đã đặt lại mật khẩu", null));
     }
 }

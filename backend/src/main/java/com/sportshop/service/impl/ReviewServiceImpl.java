@@ -45,13 +45,13 @@ public class ReviewServiceImpl implements ReviewService {
     @Transactional
     public ReviewResponse createOrUpdate(String email, ReviewRequest request) {
         User user = userRepository.findByEmailAndDeletedFalse(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
         Product product = productRepository.findByIdAndDeletedFalse(request.getProductId())
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm"));
 
         boolean canReview = orderItemRepository.hasDeliveredOrderForProduct(product, user.getId());
         if (!canReview) {
-            throw new BadRequestException("You can only review purchased and delivered products");
+            throw new BadRequestException("Bạn chỉ có thể đánh giá sản phẩm đã mua và đã giao");
         }
 
         Review review = reviewRepository.findByUserAndProduct(user, product).orElse(new Review());
@@ -67,7 +67,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public Page<ReviewResponse> getProductReviews(UUID productId, int page, int size) {
         Product product = productRepository.findByIdAndDeletedFalse(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm"));
 
         return reviewRepository.findByProductAndApprovedTrueOrderByCreatedAtDesc(product, PageRequest.of(page, size))
                 .map(reviewMapper::toResponse);

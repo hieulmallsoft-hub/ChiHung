@@ -20,6 +20,6 @@ public class AdminDashboardController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<DashboardResponse>> dashboard() {
-        return ResponseEntity.ok(ApiResponse.success("Dashboard summary", dashboardService.getSummary()));
+        return ResponseEntity.ok(ApiResponse.success("Tổng quan bảng điều khiển", dashboardService.getSummary()));
     }
 }

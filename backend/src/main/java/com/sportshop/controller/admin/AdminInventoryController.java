@@ -25,11 +25,11 @@ public class AdminInventoryController {
     @PutMapping("/products/{productId}")
     public ResponseEntity<ApiResponse<ProductResponse>> adjustStock(@PathVariable UUID productId,
                                                                     @Valid @RequestBody InventoryAdjustRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Stock adjusted", productService.adjustStock(productId, request)));
+        return ResponseEntity.ok(ApiResponse.success("Đã điều chỉnh tồn kho", productService.adjustStock(productId, request)));
     }
 
     @GetMapping("/products/{productId}/logs")
     public ResponseEntity<ApiResponse<List<InventoryLogResponse>>> logs(@PathVariable UUID productId) {
-        return ResponseEntity.ok(ApiResponse.success("Inventory logs", productService.getInventoryLogs(productId)));
+        return ResponseEntity.ok(ApiResponse.success("Lịch sử tồn kho", productService.getInventoryLogs(productId)));
     }
 }

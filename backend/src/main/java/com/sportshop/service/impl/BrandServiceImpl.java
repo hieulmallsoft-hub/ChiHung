@@ -52,7 +52,7 @@ public class BrandServiceImpl implements BrandService {
     @Transactional
     public BrandResponse update(UUID id, BrandRequest request) {
         Brand brand = brandRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Brand not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thương hiệu"));
         brand.setName(request.getName());
         brand.setSlug(buildUniqueSlug(request.getName()));
         brand.setDescription(request.getDescription());
@@ -64,7 +64,7 @@ public class BrandServiceImpl implements BrandService {
     @Transactional
     public void delete(UUID id) {
         Brand brand = brandRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Brand not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thương hiệu"));
         brand.setDeleted(true);
         brand.setActive(false);
         brandRepository.save(brand);

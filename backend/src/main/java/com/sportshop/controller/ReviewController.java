@@ -25,13 +25,13 @@ public class ReviewController {
     @PostMapping
     public ResponseEntity<ApiResponse<ReviewResponse>> createReview(Authentication authentication,
                                                                     @Valid @RequestBody ReviewRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Review submitted", reviewService.createOrUpdate(authentication.getName(), request)));
+        return ResponseEntity.ok(ApiResponse.success("Đã gửi đánh giá", reviewService.createOrUpdate(authentication.getName(), request)));
     }
 
     @GetMapping("/product/{productId}")
     public ResponseEntity<ApiResponse<Page<ReviewResponse>>> productReviews(@PathVariable UUID productId,
                                                                             @RequestParam(defaultValue = "0") int page,
                                                                             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(ApiResponse.success("Review list", reviewService.getProductReviews(productId, page, size)));
+        return ResponseEntity.ok(ApiResponse.success("Danh sách đánh giá", reviewService.getProductReviews(productId, page, size)));
     }
 }

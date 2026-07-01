@@ -54,7 +54,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({DataIntegrityViolationException.class, NonUniqueResultException.class})
     public ResponseEntity<ApiResponse<Void>> handleDuplicateOrIntegrity(Exception ex) {
         log.warn("DataIntegrity/NonUnique exception: {}", ex.getMessage());
-        return error(HttpStatus.CONFLICT, "Du lieu bi trung hoac vi pham rang buoc unique");
+        return error(HttpStatus.CONFLICT, "Dữ liệu bị trùng hoặc vi phạm ràng buộc unique");
     }
 
     // ========== SPRING MVC EXCEPTIONS ==========
@@ -63,10 +63,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
         log.warn("MethodArgumentTypeMismatch: field='{}', value='{}'", ex.getName(), ex.getValue());
         String message = String.format(
-                "Tham so '%s' co gia tri '%s' khong hop le, kieu yeu cau: %s",
+                "Tham số '%s' có giá trị '%s' không hợp lệ, kiểu yêu cầu: %s",
                 ex.getName(),
                 ex.getValue(),
-                ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "khong xac dinh"
+                ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "không xác định"
         );
         return error(HttpStatus.BAD_REQUEST, message);
     }
@@ -74,7 +74,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse<Void>> handleNotReadable(HttpMessageNotReadableException ex) {
         log.warn("HttpMessageNotReadableException: {}", ex.getMessage());
-        return error(HttpStatus.BAD_REQUEST, "Request body khong hop le hoac bi thieu");
+        return error(HttpStatus.BAD_REQUEST, "Body request không hợp lệ hoặc bị thiếu");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -85,7 +85,7 @@ public class GlobalExceptionHandler {
                 .stream()
                 .map(this::buildValidationMessage)
                 .toList();
-        return errorWithData(HttpStatus.BAD_REQUEST, "Du lieu khong hop le", details);
+        return errorWithData(HttpStatus.BAD_REQUEST, "Dữ liệu không hợp lệ", details);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
@@ -95,20 +95,20 @@ public class GlobalExceptionHandler {
                 .stream()
                 .map(v -> v.getPropertyPath() + ": " + v.getMessage())
                 .toList();
-        return errorWithData(HttpStatus.BAD_REQUEST, "Du lieu request khong hop le", details);
+        return errorWithData(HttpStatus.BAD_REQUEST, "Dữ liệu request không hợp lệ", details);
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ApiResponse<Void>> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
         log.warn("HttpRequestMethodNotSupportedException: method='{}'", ex.getMethod());
-        String message = String.format("Phuong thuc HTTP '%s' khong duoc ho tro cho endpoint nay", ex.getMethod());
+        String message = String.format("Phương thức HTTP '%s' không được hỗ trợ cho endpoint này", ex.getMethod());
         return error(HttpStatus.METHOD_NOT_ALLOWED, message);
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<ApiResponse<Void>> handleNoHandlerFound(NoHandlerFoundException ex) {
         log.warn("NoHandlerFoundException: method='{}', uri='{}'", ex.getHttpMethod(), ex.getRequestURL());
-        String message = String.format("Khong tim thay endpoint '%s %s'", ex.getHttpMethod(), ex.getRequestURL());
+        String message = String.format("Không tìm thấy endpoint '%s %s'", ex.getHttpMethod(), ex.getRequestURL());
         return error(HttpStatus.NOT_FOUND, message);
     }
 

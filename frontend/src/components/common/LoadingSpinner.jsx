@@ -1,4 +1,4 @@
-export default function LoadingSpinner({ text = "Dang tai..." }) {
+export default function LoadingSpinner({ text = "Đang tải..." }) {
   return (
     <div className="section-shell flex min-h-[220px] items-center justify-center">
       <div className="flex items-center gap-3 text-slate-600">

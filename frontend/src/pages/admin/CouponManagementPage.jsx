@@ -43,12 +43,12 @@ export default function CouponManagementPage() {
     try {
       setLoading(true);
       await adminApi.saveCoupon(payload, editingId);
-      toast.success(editingId ? "Da cap nhat coupon" : "Da tao coupon");
+      toast.success(editingId ? "Đã cập nhật mã giảm giá" : "Đã tạo mã giảm giá");
       setForm(emptyForm);
       setEditingId(null);
       await load();
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Khong luu duoc coupon");
+      toast.error(error?.response?.data?.message || "Không lưu được mã giảm giá");
     } finally {
       setLoading(false);
     }
@@ -70,7 +70,7 @@ export default function CouponManagementPage() {
   const deactivate = async (id) => {
     if (!window.confirm("Vo hieu hoa coupon nay?")) return;
     await adminApi.deleteCoupon(id);
-    toast.success("Da vo hieu hoa coupon");
+    toast.success("Đã vô hiệu hóa mã giảm giá");
     load();
   };
 
@@ -79,12 +79,12 @@ export default function CouponManagementPage() {
       <div className="admin-card">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-rose-200">Promotion</p>
-            <h1 className="mt-2 font-heading text-2xl font-bold text-white">Coupon Management</h1>
-            <p className="mt-1 text-sm text-slate-300">Tao ma giam gia, gioi han su dung va theo doi luot ap dung.</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-200">Khuyến mãi</p>
+            <h1 className="mt-2 font-heading text-2xl font-bold text-white">Quản lý mã giảm giá</h1>
+            <p className="mt-1 text-sm text-slate-300">Tạo mã giảm giá, giới hạn sử dụng và theo dõi lượt áp dụng.</p>
           </div>
           <div className="admin-subtle text-sm">
-            <p className="text-slate-400">Dang kich hoat</p>
+            <p className="text-slate-400">Đang kích hoạt</p>
             <p className="text-2xl font-bold text-white">{activeCoupons}</p>
           </div>
         </div>
@@ -92,21 +92,21 @@ export default function CouponManagementPage() {
 
       <div className="admin-card">
         <form className="grid gap-3 md:grid-cols-4" onSubmit={submit}>
-          <input className="admin-input" required placeholder="Ma coupon" value={form.code} onChange={(e) => setForm((p) => ({ ...p, code: e.target.value }))} />
+          <input className="admin-input" required placeholder="Mã giảm giá" value={form.code} onChange={(e) => setForm((p) => ({ ...p, code: e.target.value }))} />
           <select className="admin-select" value={form.discountType} onChange={(e) => setForm((p) => ({ ...p, discountType: e.target.value }))}>
-            <option value="PERCENT">Phan tram</option>
-            <option value="FIXED">So tien co dinh</option>
+            <option value="PERCENT">Phần trăm</option>
+            <option value="FIXED">Số tiền cố định</option>
           </select>
-          <input className="admin-input" required type="number" min="0" placeholder="Gia tri giam" value={form.discountValue} onChange={(e) => setForm((p) => ({ ...p, discountValue: e.target.value }))} />
-          <input className="admin-input" type="number" min="0" placeholder="Don toi thieu" value={form.minOrderValue} onChange={(e) => setForm((p) => ({ ...p, minOrderValue: e.target.value }))} />
-          <input className="admin-input" type="number" min="0" placeholder="Giam toi da" value={form.maxDiscount} onChange={(e) => setForm((p) => ({ ...p, maxDiscount: e.target.value }))} />
-          <input className="admin-input" type="number" min="1" placeholder="Gioi han luot dung" value={form.usageLimit} onChange={(e) => setForm((p) => ({ ...p, usageLimit: e.target.value }))} />
+          <input className="admin-input" required type="number" min="0" placeholder="Giá trị giảm" value={form.discountValue} onChange={(e) => setForm((p) => ({ ...p, discountValue: e.target.value }))} />
+          <input className="admin-input" type="number" min="0" placeholder="Đơn tối thiểu" value={form.minOrderValue} onChange={(e) => setForm((p) => ({ ...p, minOrderValue: e.target.value }))} />
+          <input className="admin-input" type="number" min="0" placeholder="Giảm tối đa" value={form.maxDiscount} onChange={(e) => setForm((p) => ({ ...p, maxDiscount: e.target.value }))} />
+          <input className="admin-input" type="number" min="1" placeholder="Giới hạn lượt dùng" value={form.usageLimit} onChange={(e) => setForm((p) => ({ ...p, usageLimit: e.target.value }))} />
           <label className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200">
             <input type="checkbox" checked={form.active} onChange={(e) => setForm((p) => ({ ...p, active: e.target.checked }))} />
             Kich hoat
           </label>
           <button className="btn-primary" disabled={loading} type="submit">
-            {editingId ? "Cap nhat" : "Them coupon"}
+            {editingId ? "Cập nhật" : "Thêm mã giảm giá"}
           </button>
         </form>
       </div>
@@ -115,11 +115,11 @@ export default function CouponManagementPage() {
         <table className="admin-table">
           <thead>
             <tr>
-              <th className="px-4 py-3">Code</th>
-              <th className="px-4 py-3">Discount</th>
-              <th className="px-4 py-3">Min/Max</th>
-              <th className="px-4 py-3">Usage</th>
-              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Mã</th>
+              <th className="px-4 py-3">Giảm giá</th>
+              <th className="px-4 py-3">Tối thiểu/Tối đa</th>
+              <th className="px-4 py-3">Lượt dùng</th>
+              <th className="px-4 py-3">Trạng thái</th>
               <th className="px-4 py-3"></th>
             </tr>
           </thead>
@@ -133,11 +133,11 @@ export default function CouponManagementPage() {
                 </td>
                 <td className="px-4 py-3">{item.usageCount || 0}/{item.usageLimit || "∞"}</td>
                 <td className="px-4 py-3">
-                  <span className={`admin-pill ${item.active ? "text-emerald-200" : "text-slate-400"}`}>{item.active ? "Active" : "Inactive"}</span>
+                  <span className={`admin-pill ${item.active ? "text-teal-200" : "text-slate-400"}`}>{item.active ? "Đang bật" : "Đã tắt"}</span>
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <button className="mr-3 text-sm font-semibold text-rose-200 hover:text-white" onClick={() => edit(item)}>Sua</button>
-                  <button className="text-sm font-semibold text-slate-300 hover:text-white" onClick={() => deactivate(item.id)}>Tat</button>
+                  <button className="mr-3 text-sm font-semibold text-cyan-200 hover:text-white" onClick={() => edit(item)}>Sửa</button>
+                  <button className="text-sm font-semibold text-slate-300 hover:text-white" onClick={() => deactivate(item.id)}>Tắt</button>
                 </td>
               </tr>
             ))}

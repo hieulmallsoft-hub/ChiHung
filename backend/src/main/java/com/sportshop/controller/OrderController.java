@@ -26,7 +26,7 @@ public class OrderController {
     @PostMapping("/checkout")
     public ResponseEntity<ApiResponse<OrderResponse>> checkout(Authentication authentication,
                                                                @Valid @RequestBody CheckoutRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Checkout success", orderService.checkout(authentication.getName(), request)));
+        return ResponseEntity.ok(ApiResponse.success("Đặt hàng thành công", orderService.checkout(authentication.getName(), request)));
     }
 
     @GetMapping("/me")
@@ -34,25 +34,25 @@ public class OrderController {
                                                                         @RequestParam(required = false) String statuses,
                                                                         @RequestParam(defaultValue = "0") int page,
                                                                         @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(ApiResponse.success("My orders",
+        return ResponseEntity.ok(ApiResponse.success("Đơn hàng của tôi",
                 orderService.getMyOrders(authentication.getName(), statuses, page, size)));
     }
 
     @GetMapping("/me/{id}")
     public ResponseEntity<ApiResponse<OrderResponse>> getMyOrder(Authentication authentication,
                                                                  @PathVariable UUID id) {
-        return ResponseEntity.ok(ApiResponse.success("Order detail", orderService.getMyOrderDetail(authentication.getName(), id)));
+        return ResponseEntity.ok(ApiResponse.success("Chi tiết đơn hàng", orderService.getMyOrderDetail(authentication.getName(), id)));
     }
 
     @PostMapping("/me/{id}/cancel")
     public ResponseEntity<ApiResponse<Void>> cancelOrder(Authentication authentication,
                                                          @PathVariable UUID id) {
         orderService.cancelMyOrder(authentication.getName(), id);
-        return ResponseEntity.ok(ApiResponse.success("Order cancelled", null));
+        return ResponseEntity.ok(ApiResponse.success("Đã hủy đơn hàng", null));
     }
 
     @GetMapping("/me/stats")
     public ResponseEntity<ApiResponse<SpendingStatsResponse>> spendingStats(Authentication authentication) {
-        return ResponseEntity.ok(ApiResponse.success("Spending statistics", orderService.getMySpendingStats(authentication.getName())));
+        return ResponseEntity.ok(ApiResponse.success("Thống kê chi tiêu", orderService.getMySpendingStats(authentication.getName())));
     }
 }

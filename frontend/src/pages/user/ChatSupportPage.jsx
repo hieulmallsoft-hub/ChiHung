@@ -25,7 +25,7 @@ export default function ChatSupportPage() {
           (item) => !previousIds.has(item.id) && item.senderId !== user?.id
         );
         if (newAdminMessages.length > 0) {
-          toast.success("Admin vua phan hoi tin nhan cua ban");
+          toast.success("Quản trị viên vừa phản hồi tin nhắn của bạn");
         }
         return nextMessages;
       });
@@ -55,7 +55,7 @@ export default function ChatSupportPage() {
                 const next = mergeMessageList(prev, incoming);
                 const isNew = next.length > prev.length;
                 if (isNew && incoming?.senderId !== user?.id) {
-                  toast.success("Admin vua phan hoi tin nhan cua ban");
+                  toast.success("Quản trị viên vừa phản hồi tin nhắn của bạn");
                 }
                 return next;
               });
@@ -76,7 +76,7 @@ export default function ChatSupportPage() {
         stompRef.current = client;
       } catch (error) {
         setStatus("fallback");
-        toast.error(error?.response?.data?.message || "Khong tai duoc ho tro chat");
+        toast.error(error?.response?.data?.message || "Không tải được hỗ trợ chat");
       }
     };
 
@@ -137,7 +137,7 @@ export default function ChatSupportPage() {
       }
       setContent("");
     } catch {
-      toast.error("Gui tin nhan that bai");
+      toast.error("Gửi tin nhắn thất bại");
     }
   };
 
@@ -148,35 +148,35 @@ export default function ChatSupportPage() {
   return (
     <div className="section-shell">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="font-heading text-2xl font-bold text-slate-900">Chat ho tro khach hang</h1>
-        <span className={`rounded-full px-3 py-1 text-xs font-bold ${status === "connected" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
-          {status === "connected" ? "Dang ket noi realtime" : "Dang dung fallback polling"}
+        <h1 className="font-heading text-2xl font-bold text-slate-900">Hỗ trợ khách hàng</h1>
+        <span className={`rounded-full px-3 py-1 text-xs font-bold ${status === "connected" ? "bg-teal-100 text-teal-700" : "bg-amber-100 text-amber-700"}`}>
+          {status === "connected" ? "Đang kết nối thời gian thực" : "Đang dùng polling dự phòng"}
         </span>
       </div>
-      <p className="mt-1 text-sm text-slate-500">Nhan vien tu van se phan hoi trong thoi gian thuc.</p>
+      <p className="mt-1 text-sm text-slate-500">Nhân viên tư vấn sẽ phản hồi trong thời gian thực.</p>
 
-      <div className="mt-4 h-[420px] space-y-2 overflow-y-auto rounded-2xl border border-rose-100 bg-gradient-to-b from-rose-50 to-white p-3">
+      <div className="mt-4 h-[420px] space-y-2 overflow-y-auto rounded-2xl border border-cyan-100 bg-gradient-to-b from-cyan-50 to-white p-3">
         {messages.length === 0 && (
-          <div className="rounded-xl border border-dashed border-rose-200 bg-white/70 p-3 text-xs text-slate-500">
-            Chua co tin nhan. Ban co the dat cau hoi ve size, ton kho hoac thanh toan.
+          <div className="rounded-xl border border-dashed border-cyan-200 bg-white/70 p-3 text-xs text-slate-500">
+            Chưa có tin nhắn. Bạn có thể đặt câu hỏi về size, tồn kho hoặc thanh toán.
           </div>
         )}
         {messages.map((msg) => {
           const mine = msg.senderId === user?.id;
           const isDeleted = Boolean(msg.deleted);
           const isEdited = Boolean(msg.editedAt);
-          const displayContent = isDeleted ? "Tin nhan da bi xoa" : msg.content;
+          const displayContent = isDeleted ? "Tin nhắn đã bị xóa" : msg.content;
           return (
             <div
               key={msg.id}
               className={`max-w-[70%] rounded-2xl px-3 py-2 text-sm shadow-sm ${
-                mine ? "ml-auto bg-primary-700 text-white" : "border border-rose-100 bg-white text-slate-700"
+                mine ? "ml-auto bg-primary-700 text-white" : "border border-cyan-100 bg-white text-slate-700"
               }`}
             >
               <p className="text-[11px] opacity-70">{msg.senderName}</p>
               <p className={isDeleted ? "italic opacity-70" : ""}>
                 {displayContent}
-                {isEdited && !isDeleted && <span className="ml-1 text-[11px] opacity-70">(da sua)</span>}
+                {isEdited && !isDeleted && <span className="ml-1 text-[11px] opacity-70">(đã sửa)</span>}
               </p>
             </div>
           );
@@ -189,9 +189,9 @@ export default function ChatSupportPage() {
           onChange={(event) => setContent(event.target.value)}
           onKeyDown={(event) => event.key === "Enter" && sendMessage()}
           className="flex-1"
-          placeholder="Nhap noi dung can ho tro..."
+          placeholder="Nhập nội dung cần hỗ trợ..."
         />
-        <button className="btn-primary" onClick={sendMessage}>Gui</button>
+        <button className="btn-primary" onClick={sendMessage}>Gửi</button>
       </div>
     </div>
   );

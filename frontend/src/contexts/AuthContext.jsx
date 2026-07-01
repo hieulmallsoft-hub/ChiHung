@@ -121,7 +121,7 @@ export function AuthProvider({ children }) {
       try {
         const response = await authApi.login(payload);
         applySession(response.data.data);
-        toast.success("Dang nhap thanh cong");
+        toast.success("Đăng nhập thành công");
         return response.data.data;
       } finally {
         setLoading(false);
@@ -136,7 +136,7 @@ export function AuthProvider({ children }) {
       try {
         const response = await authApi.register(payload);
         applySession(response.data.data);
-        toast.success("Tao tai khoan thanh cong");
+        toast.success("Tạo tài khoản thành công");
         return response.data.data;
       } finally {
         setLoading(false);
@@ -155,7 +155,7 @@ export function AuthProvider({ children }) {
       // ignore logout failure for client session cleanup
     }
     clearSession();
-    toast.success("Da dang xuat");
+    toast.success("Đã đăng xuất");
   }, [clearSession]);
 
   const hasRole = useCallback(

@@ -1,9 +1,15 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { adminApi } from "../../api/adminApi";
 import { chatApi } from "../../api/chatApi";
 import { createChatStompClient, mergeMessageList } from "../../utils/chatSocket";
 import { useAuth } from "../../hooks/useAuth";
+
+const chatRoomStatusLabels = {
+  OPEN: "Đang mở",
+  RESOLVED: "Đã xử lý",
+  CLOSED: "Đã đóng",
+};
 
 export default function ChatManagementPage() {
   const { user } = useAuth();
@@ -45,7 +51,7 @@ export default function ChatManagementPage() {
       });
     } catch (error) {
       if (!silent) {
-        toast.error(error?.response?.data?.message || "Khong tai duoc danh sach chat room");
+        toast.error(error?.response?.data?.message || "Không tải được danh sách phòng chat");
       }
     }
   }, []);
@@ -60,7 +66,7 @@ export default function ChatManagementPage() {
       setMessages(response.data?.data?.content || []);
     } catch (error) {
       if (!silent) {
-        toast.error(error?.response?.data?.message || "Khong tai duoc tin nhan");
+        toast.error(error?.response?.data?.message || "Không tải được tin nhắn");
       }
     }
   }, []);
@@ -191,17 +197,17 @@ export default function ChatManagementPage() {
       await adminApi.editChatMessage(editingId, { content: editingContent.trim() });
       cancelEdit();
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Khong the sua tin nhan");
+      toast.error(error?.response?.data?.message || "Không thể sửa tin nhắn");
     }
   };
 
   const deleteMessage = async (messageId) => {
     if (!messageId) return;
-    if (!window.confirm("Ban co chac muon xoa tin nhan nay?")) return;
+    if (!window.confirm("Bạn có chắc muốn xóa tin nhắn này?")) return;
     try {
       await adminApi.deleteChatMessage(messageId);
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Khong the xoa tin nhan");
+      toast.error(error?.response?.data?.message || "Không thể xóa tin nhắn");
     }
   };
 
@@ -229,21 +235,21 @@ export default function ChatManagementPage() {
       await loadRooms({ silent: true });
       await chatApi.markRead(selectedRoomId).catch(() => undefined);
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Gui tin nhan that bai");
+      toast.error(error?.response?.data?.message || "Gửi tin nhắn thất bại");
     }
   };
 
   const resolve = async (roomId) => {
     try {
       await adminApi.resolveRoom(roomId);
-      toast.success("Da danh dau cuoc tro chuyen da xu ly");
+      toast.success("Đã đánh dấu cuộc trò chuyện đã xử lý");
       await loadRooms();
       if (selectedRoomId === roomId) {
         setSelectedRoomId(null);
         setMessages([]);
       }
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Khong the cap nhat trang thai room");
+      toast.error(error?.response?.data?.message || "Không thể cập nhật trạng thái phòng");
     }
   };
 
@@ -266,22 +272,22 @@ export default function ChatManagementPage() {
       <aside className="admin-card h-[680px] overflow-y-auto">
         <div className="mb-4 flex items-center justify-between gap-2">
           <div>
-            <h1 className="font-heading text-xl font-bold text-white">Ho tro truc tuyen</h1>
-            <p className="text-xs text-slate-300">Quan ly tat ca cuoc tro chuyen</p>
+            <h1 className="font-heading text-xl font-bold text-white">Hỗ trợ trực tuyến</h1>
+            <p className="text-xs text-slate-300">Quản lý tất cả cuộc trò chuyện</p>
           </div>
           <span
             className={`rounded-full px-3 py-1 text-[11px] font-bold ${
-              status === "connected" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+              status === "connected" ? "bg-teal-100 text-teal-700" : "bg-amber-100 text-amber-700"
             }`}
           >
-            {status === "connected" ? "Realtime" : "Fallback"}
+            {status === "connected" ? "Thời gian thực" : "Dự phòng"}
           </span>
         </div>
 
         <input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          placeholder="Tim khach hang..."
+          placeholder="Tìm khách hàng..."
           className="admin-input mb-3"
         />
 
@@ -291,7 +297,7 @@ export default function ChatManagementPage() {
               key={room.id}
               onClick={() => selectRoom(room.id)}
               className={`w-full rounded-2xl border p-3 text-left transition ${
-                selectedRoomId === room.id ? "border-primary-300 bg-rose-50 shadow-soft" : "border-rose-100 bg-white"
+                selectedRoomId === room.id ? "border-primary-300 bg-cyan-50 shadow-soft" : "border-cyan-100 bg-white"
               }`}
             >
               <div className="flex items-center justify-between gap-2">
@@ -302,13 +308,13 @@ export default function ChatManagementPage() {
                   </span>
                 )}
               </div>
-              <p className="mt-1 text-xs text-slate-500">Trang thai: {room.status}</p>
-              <p className="text-xs text-slate-400">Cap nhat: {formatTime(room.lastMessageAt)}</p>
+              <p className="mt-1 text-xs text-slate-500">Trạng thái: {chatRoomStatusLabels[room.status] || room.status}</p>
+              <p className="text-xs text-slate-400">Cập nhật: {formatTime(room.lastMessageAt)}</p>
             </button>
           ))}
           {filteredRooms.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-rose-200 bg-rose-50 p-4 text-xs text-slate-500">
-              Khong tim thay room phu hop.
+            <div className="rounded-2xl border border-dashed border-cyan-200 bg-cyan-50 p-4 text-xs text-slate-500">
+              Không tìm thấy phòng phù hợp.
             </div>
           )}
         </div>
@@ -318,35 +324,35 @@ export default function ChatManagementPage() {
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
           <h2 className="font-heading text-xl font-semibold text-white">
-            {selectedRoom ? `Khach hang: ${selectedRoom.userName}` : "Chon room de bat dau"}
+            {selectedRoom ? `Khách hàng: ${selectedRoom.userName}` : "Chọn phòng để bắt đầu"}
           </h2>
           <p className="text-xs text-slate-300">
-            {selectedRoom ? `Trang thai: ${selectedRoom.status}` : "Chon mot cuoc tro chuyen de xem chi tiet."}
+            {selectedRoom ? `Trạng thái: ${chatRoomStatusLabels[selectedRoom.status] || selectedRoom.status}` : "Chọn một cuộc trò chuyện để xem chi tiết."}
           </p>
         </div>
           {selectedRoom && (
             <button className="btn-secondary text-xs" onClick={() => resolve(selectedRoom.id)}>
-              Danh dau da xu ly
+              Đánh dấu đã xử lý
             </button>
           )}
         </div>
 
         <div className="flex-1 space-y-3 overflow-y-auto rounded-3xl border border-white/10 bg-white/5 p-4">
           {messages.length === 0 && (
-            <p className="text-sm text-slate-500">Chua co tin nhan nao trong room nay.</p>
+            <p className="text-sm text-slate-500">Chưa có tin nhắn nào trong phòng này.</p>
           )}
           {messages.map((msg) => {
             const mine = msg.senderId === user?.id;
             const isDeleted = Boolean(msg.deleted);
             const isEdited = Boolean(msg.editedAt);
-            const displayContent = isDeleted ? "Tin nhan da bi xoa" : msg.content;
+            const displayContent = isDeleted ? "Tin nhắn đã bị xóa" : msg.content;
             const isEditing = editingId === msg.id;
 
             return (
               <div key={msg.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
                 <div
                   className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
-                    mine ? "bg-primary-700 text-white" : "border border-rose-100 bg-white text-slate-700"
+                    mine ? "bg-primary-700 text-white" : "border border-cyan-100 bg-white text-slate-700"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -364,17 +370,17 @@ export default function ChatManagementPage() {
                       />
                       <div className="flex gap-2">
                         <button className="btn-primary text-xs" onClick={saveEdit}>
-                          Luu
+                          Lưu
                         </button>
                         <button className="btn-secondary text-xs" onClick={cancelEdit}>
-                          Huy
+                          Hủy
                         </button>
                       </div>
                     </div>
                   ) : (
                     <p className={isDeleted ? "mt-1 italic opacity-70" : "mt-1"}>
                       {displayContent}
-                      {isEdited && !isDeleted && <span className="ml-1 text-[10px] opacity-70">(da sua)</span>}
+                      {isEdited && !isDeleted && <span className="ml-1 text-[10px] opacity-70">(đã sửa)</span>}
                     </p>
                   )}
 
@@ -382,11 +388,11 @@ export default function ChatManagementPage() {
                     <div className="mt-3 flex items-center gap-3 text-[11px] font-semibold opacity-80">
                       {mine && !isDeleted && (
                         <button className="hover:underline" onClick={() => startEdit(msg)}>
-                          Sua
+                          Sửa
                         </button>
                       )}
                       <button className="hover:underline" onClick={() => deleteMessage(msg.id)}>
-                        Xoa
+                        Xóa
                       </button>
                     </div>
                   )}
@@ -402,11 +408,11 @@ export default function ChatManagementPage() {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             onKeyDown={(event) => event.key === "Enter" && sendMessage()}
-            placeholder="Nhap phan hoi..."
+            placeholder="Nhập phản hồi..."
             disabled={!selectedRoomId}
           />
           <button className="btn-primary" onClick={sendMessage} disabled={!selectedRoomId}>
-            Gui
+            Gửi
           </button>
         </div>
       </section>

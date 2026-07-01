@@ -34,24 +34,24 @@ public class AdminProductController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(ApiResponse.success("Product list",
+        return ResponseEntity.ok(ApiResponse.success("Danh sách sản phẩm",
                 productService.getProducts(keyword, categoryId, brandId, minPrice, maxPrice, inStock, sortBy, page, size)));
     }
 
     @PostMapping
     public ResponseEntity<ApiResponse<ProductResponse>> create(@Valid @RequestBody ProductRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Product created", productService.create(request)));
+        return ResponseEntity.ok(ApiResponse.success("Đã tạo sản phẩm", productService.create(request)));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductResponse>> update(@PathVariable UUID id,
                                                                @Valid @RequestBody ProductRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Product updated", productService.update(id, request)));
+        return ResponseEntity.ok(ApiResponse.success("Đã cập nhật sản phẩm", productService.update(id, request)));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
         productService.delete(id);
-        return ResponseEntity.ok(ApiResponse.success("Product deleted", null));
+        return ResponseEntity.ok(ApiResponse.success("Đã xóa sản phẩm", null));
     }
 }
