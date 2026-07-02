@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { adminApi } from "../../api/adminApi";
+import { AdminError, AdminLoading, getAdminErrorMessage } from "../../components/admin/AdminStatus";
 
 const roleLabels = {
   ROLE_ADMIN: "Quản trị viên",
@@ -15,10 +16,20 @@ const userStatusLabels = {
 export default function UserManagementPage() {
   const [users, setUsers] = useState([]);
   const [keyword, setKeyword] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const loadUsers = async () => {
-    const response = await adminApi.getUsers({ keyword, page: 0, size: 20 });
-    setUsers(response.data.data.content || []);
+    try {
+      setLoading(true);
+      setError("");
+      const response = await adminApi.getUsers({ keyword, page: 0, size: 20 });
+      setUsers(response.data.data.content || []);
+    } catch (loadError) {
+      setError(getAdminErrorMessage(loadError, "Khong tai duoc danh sach nguoi dung"));
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -31,15 +42,23 @@ export default function UserManagementPage() {
     const password = window.prompt("Mật khẩu");
     if (!fullName || !email || !password) return;
 
-    await adminApi.createUser({ fullName, email, password }, admin);
-    toast.success(admin ? "Đã tạo quản trị viên" : "Đã tạo người dùng");
-    loadUsers();
+    try {
+      await adminApi.createUser({ fullName, email, password }, admin);
+      toast.success(admin ? "Đã tạo quản trị viên" : "Đã tạo người dùng");
+      loadUsers();
+    } catch (createError) {
+      toast.error(getAdminErrorMessage(createError, "Khong tao duoc nguoi dung"));
+    }
   };
 
   const lockUser = async (id) => {
-    await adminApi.lockUser(id);
-    toast.success("Đã khóa người dùng");
-    loadUsers();
+    try {
+      await adminApi.lockUser(id);
+      toast.success("Đã khóa người dùng");
+      loadUsers();
+    } catch (lockError) {
+      toast.error(getAdminErrorMessage(lockError, "Khong khoa duoc nguoi dung"));
+    }
   };
 
   return (
@@ -75,8 +94,10 @@ export default function UserManagementPage() {
       </div>
 
       <div className="admin-card p-0">
+        {loading && <div className="p-4"><AdminLoading message="Dang tai nguoi dung..." /></div>}
+        {error && !loading && <div className="p-4"><AdminError message={error} onRetry={loadUsers} /></div>}
         <div className="overflow-x-auto">
-          <table className="admin-table">
+          {!loading && !error && <table className="admin-table">
             <thead>
               <tr>
                 <th className="py-3 pl-4">Họ tên</th>
@@ -103,7 +124,10 @@ export default function UserManagementPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table>}
+          {!loading && !error && users.length === 0 && (
+            <p className="p-4 text-sm text-slate-300">Chua co nguoi dung phu hop.</p>
+          )}
         </div>
       </div>
     </div>

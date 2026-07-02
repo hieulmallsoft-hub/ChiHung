@@ -1,16 +1,27 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { adminApi } from "../../api/adminApi";
+import { AdminError, AdminLoading, getAdminErrorMessage } from "../../components/admin/AdminStatus";
 
 export default function InventoryManagementPage() {
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [logs, setLogs] = useState([]);
   const [keyword, setKeyword] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const loadProducts = async () => {
-    const response = await adminApi.getProducts({ page: 0, size: 30 });
-    setProducts(response.data.data.content || []);
+    try {
+      setLoading(true);
+      setError("");
+      const response = await adminApi.getProducts({ page: 0, size: 30 });
+      setProducts(response.data.data.content || []);
+    } catch (loadError) {
+      setError(getAdminErrorMessage(loadError, "Khong tai duoc ton kho"));
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -18,8 +29,12 @@ export default function InventoryManagementPage() {
   }, []);
 
   const loadLogs = async (productId) => {
-    const response = await adminApi.getInventoryLogs(productId);
-    setLogs(response.data.data || []);
+    try {
+      const response = await adminApi.getInventoryLogs(productId);
+      setLogs(response.data.data || []);
+    } catch (loadError) {
+      toast.error(getAdminErrorMessage(loadError, "Khong tai duoc lich su ton kho"));
+    }
   };
 
   const adjustStock = async (product) => {
@@ -66,8 +81,10 @@ export default function InventoryManagementPage() {
           />
         </div>
 
+        {loading && <AdminLoading message="Dang tai ton kho..." />}
+        {error && !loading && <AdminError message={error} onRetry={loadProducts} />}
         <div className="space-y-3 text-sm">
-          {visibleProducts.map((product) => (
+          {!loading && !error && visibleProducts.map((product) => (
             <div key={product.id} className="admin-subtle flex items-center justify-between">
               <div>
                 <p className="font-semibold text-white">{product.name}</p>
@@ -91,6 +108,9 @@ export default function InventoryManagementPage() {
               </div>
             </div>
           ))}
+          {!loading && !error && visibleProducts.length === 0 && (
+            <p className="admin-subtle text-sm text-slate-300">Khong co san pham phu hop.</p>
+          )}
         </div>
       </div>
 

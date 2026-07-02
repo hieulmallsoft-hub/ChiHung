@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { adminApi } from "../../api/adminApi";
+import { AdminError, AdminLoading, getAdminErrorMessage } from "../../components/admin/AdminStatus";
 
 const statuses = ["PENDING", "CONFIRMED", "PROCESSING", "SHIPPING", "DELIVERED", "CANCELLED"];
 const nextStatuses = {
@@ -26,15 +27,25 @@ export default function OrderManagementPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [keyword, setKeyword] = useState("");
   const [updatingStatus, setUpdatingStatus] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const loadOrders = async () => {
-    const response = await adminApi.getOrders({
-      page: 0,
-      size: 20,
-      status: statusFilter || undefined,
-      keyword: keyword.trim() || undefined,
-    });
-    setOrders(response.data.data.content || []);
+    try {
+      setLoading(true);
+      setError("");
+      const response = await adminApi.getOrders({
+        page: 0,
+        size: 20,
+        status: statusFilter || undefined,
+        keyword: keyword.trim() || undefined,
+      });
+      setOrders(response.data.data.content || []);
+    } catch (loadError) {
+      setError(getAdminErrorMessage(loadError, "Khong tai duoc don hang"));
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -65,7 +76,7 @@ export default function OrderManagementPage() {
       if (previousStatus) {
         setOrders((prev) => prev.map((order) => (order.id === id ? { ...order, status: previousStatus } : order)));
       } else {
-        loadOrders();
+        await loadOrders();
       }
     } finally {
       setUpdatingStatus((prev) => {
@@ -99,8 +110,10 @@ export default function OrderManagementPage() {
         </div>
       </div>
 
+      {loading && <AdminLoading message="Dang tai don hang..." />}
+      {error && !loading && <AdminError message={error} onRetry={loadOrders} />}
       <div className="space-y-4 text-sm">
-        {orders.map((order) => (
+        {!loading && !error && orders.map((order) => (
           <div key={order.id} className="admin-subtle">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
@@ -142,6 +155,9 @@ export default function OrderManagementPage() {
             </div>
           </div>
         ))}
+        {!loading && !error && orders.length === 0 && (
+          <p className="admin-subtle text-sm text-slate-300">Khong co don hang phu hop.</p>
+        )}
       </div>
     </div>
   );

@@ -1,14 +1,25 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { adminApi } from "../../api/adminApi";
+import { AdminError, AdminLoading, getAdminErrorMessage } from "../../components/admin/AdminStatus";
 
 export default function CategoryManagementPage() {
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState({ name: "", description: "", active: true });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const load = async () => {
-    const response = await adminApi.getCategories();
-    setCategories(response.data.data || []);
+    try {
+      setLoading(true);
+      setError("");
+      const response = await adminApi.getCategories();
+      setCategories(response.data.data || []);
+    } catch (loadError) {
+      setError(getAdminErrorMessage(loadError, "Khong tai duoc danh muc"));
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -17,15 +28,23 @@ export default function CategoryManagementPage() {
 
   const submit = async (event) => {
     event.preventDefault();
-    await adminApi.saveCategory(form);
-    setForm({ name: "", description: "", active: true });
-    toast.success("Đã tạo danh mục");
-    load();
+    try {
+      await adminApi.saveCategory(form);
+      setForm({ name: "", description: "", active: true });
+      toast.success("Đã tạo danh mục");
+      load();
+    } catch (submitError) {
+      toast.error(getAdminErrorMessage(submitError, "Khong luu duoc danh muc"));
+    }
   };
 
   const remove = async (id) => {
-    await adminApi.deleteCategory(id);
-    load();
+    try {
+      await adminApi.deleteCategory(id);
+      load();
+    } catch (removeError) {
+      toast.error(getAdminErrorMessage(removeError, "Khong xoa duoc danh muc"));
+    }
   };
 
   return (
@@ -57,8 +76,10 @@ export default function CategoryManagementPage() {
 
       <div className="admin-card">
         <h2 className="mb-4 font-heading text-lg font-semibold text-white">Danh sách danh mục</h2>
+        {loading && <AdminLoading message="Dang tai danh muc..." />}
+        {error && !loading && <AdminError message={error} onRetry={load} />}
         <div className="space-y-3 text-sm">
-          {categories.map((item) => (
+          {!loading && !error && categories.map((item) => (
             <div key={item.id} className="admin-subtle flex items-center justify-between">
               <div>
                 <p className="font-semibold text-white">{item.name}</p>
@@ -69,6 +90,9 @@ export default function CategoryManagementPage() {
               </button>
             </div>
           ))}
+          {!loading && !error && categories.length === 0 && (
+            <p className="admin-subtle text-sm text-slate-300">Chua co danh muc nao.</p>
+          )}
         </div>
       </div>
     </div>

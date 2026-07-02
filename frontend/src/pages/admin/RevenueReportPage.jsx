@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { adminApi } from "../../api/adminApi";
+import { AdminError, AdminLoading, getAdminErrorMessage } from "../../components/admin/AdminStatus";
 
 const orderStatusLabels = {
   PENDING: "Chờ xác nhận",
@@ -14,16 +15,29 @@ const orderStatusLabels = {
 export default function RevenueReportPage() {
   const [report, setReport] = useState(null);
   const [range, setRange] = useState("30d");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    const load = async () => {
+  const load = async () => {
+    try {
+      setLoading(true);
+      setError("");
       const response = await adminApi.getReport({ range });
       setReport(response.data.data);
-    };
+    } catch (loadError) {
+      setError(getAdminErrorMessage(loadError, "Khong tai duoc bao cao doanh thu"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     load();
   }, [range]);
 
-  if (!report) return null;
+  if (loading) return <AdminLoading message="Dang tai bao cao..." />;
+  if (error) return <AdminError message={error} onRetry={load} />;
+  if (!report) return <AdminError message="Backend khong tra ve du lieu bao cao." onRetry={load} />;
 
   const orderStatusStats = (report.orderStatusStats || []).map((item) => ({
     ...item,

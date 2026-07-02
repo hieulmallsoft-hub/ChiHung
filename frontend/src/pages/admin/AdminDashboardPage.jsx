@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { adminApi } from "../../api/adminApi";
+import { AdminError, AdminLoading, getAdminErrorMessage } from "../../components/admin/AdminStatus";
 
 const orderStatusLabels = {
   PENDING: "Chờ xác nhận",
@@ -13,12 +14,23 @@ const orderStatusLabels = {
 
 export default function AdminDashboardPage() {
   const [summary, setSummary] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    const load = async () => {
+  const load = async () => {
+    try {
+      setLoading(true);
+      setError("");
       const response = await adminApi.getDashboard();
       setSummary(response.data.data);
-    };
+    } catch (loadError) {
+      setError(getAdminErrorMessage(loadError, "Khong tai duoc bang dieu khien"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     load();
   }, []);
 
@@ -41,7 +53,9 @@ export default function AdminDashboardPage() {
     [summary]
   );
 
-  if (!summary) return null;
+  if (loading) return <AdminLoading message="Dang tai bang dieu khien..." />;
+  if (error) return <AdminError message={error} onRetry={load} />;
+  if (!summary) return <AdminError message="Backend khong tra ve du lieu bang dieu khien." onRetry={load} />;
 
   return (
     <div className="space-y-5">

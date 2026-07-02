@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { adminApi } from "../../api/adminApi";
+import { AdminError, AdminLoading, getAdminErrorMessage } from "../../components/admin/AdminStatus";
 
 const emptyForm = {
   code: "",
@@ -17,12 +18,22 @@ export default function CouponManagementPage() {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [listLoading, setListLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const activeCoupons = useMemo(() => coupons.filter((item) => item.active).length, [coupons]);
 
   const load = async () => {
-    const response = await adminApi.getCoupons();
-    setCoupons(response.data.data || []);
+    try {
+      setListLoading(true);
+      setError("");
+      const response = await adminApi.getCoupons();
+      setCoupons(response.data.data || []);
+    } catch (loadError) {
+      setError(getAdminErrorMessage(loadError, "Khong tai duoc ma giam gia"));
+    } finally {
+      setListLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -69,9 +80,13 @@ export default function CouponManagementPage() {
 
   const deactivate = async (id) => {
     if (!window.confirm("Vo hieu hoa coupon nay?")) return;
-    await adminApi.deleteCoupon(id);
-    toast.success("Đã vô hiệu hóa mã giảm giá");
-    load();
+    try {
+      await adminApi.deleteCoupon(id);
+      toast.success("Đã vô hiệu hóa mã giảm giá");
+      load();
+    } catch (deleteError) {
+      toast.error(getAdminErrorMessage(deleteError, "Khong tat duoc ma giam gia"));
+    }
   };
 
   return (
@@ -112,7 +127,9 @@ export default function CouponManagementPage() {
       </div>
 
       <div className="admin-card overflow-x-auto">
-        <table className="admin-table">
+        {listLoading && <AdminLoading message="Dang tai ma giam gia..." />}
+        {error && !listLoading && <AdminError message={error} onRetry={load} />}
+        {!listLoading && !error && <table className="admin-table">
           <thead>
             <tr>
               <th className="px-4 py-3">Mã</th>
@@ -142,7 +159,10 @@ export default function CouponManagementPage() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table>}
+        {!listLoading && !error && coupons.length === 0 && (
+          <p className="p-4 text-sm text-slate-300">Chua co ma giam gia nao.</p>
+        )}
       </div>
     </div>
   );

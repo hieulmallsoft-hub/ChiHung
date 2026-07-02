@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { adminApi } from "../../api/adminApi";
+import { AdminError, getAdminErrorMessage } from "../../components/admin/AdminStatus";
 import { resolveMediaUrl } from "../../utils/media";
 
 const defaultForm = {
@@ -26,11 +27,13 @@ export default function ProductManagementPage() {
   const [keyword, setKeyword] = useState("");
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [localPreviews, setLocalPreviews] = useState([]);
 
   const load = async () => {
     try {
       setLoading(true);
+      setError("");
       const [productRes, categoryRes, brandRes] = await Promise.all([
         adminApi.getProducts({ page: 0, size: 20, keyword }),
         adminApi.getCategories(),
@@ -41,7 +44,9 @@ export default function ProductManagementPage() {
       setCategories(categoryRes.data.data || []);
       setBrands(brandRes.data.data || []);
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Khong tai duoc du lieu quan tri");
+      const message = getAdminErrorMessage(error, "Khong tai duoc du lieu quan tri");
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -227,8 +232,9 @@ export default function ProductManagementPage() {
             {loading ? "Dang tai..." : "Tim"}
           </button>
         </div>
+        {error && <AdminError message={error} onRetry={load} />}
         <div className="space-y-3">
-          {products.map((product) => (
+          {!error && products.map((product) => (
             <div key={product.id} className="admin-subtle flex items-center justify-between gap-4">
               <div className="min-w-0">
                 <p className="font-semibold text-white">{product.name}</p>
@@ -244,7 +250,7 @@ export default function ProductManagementPage() {
               </div>
             </div>
           ))}
-          {!loading && products.length === 0 && (
+          {!loading && !error && products.length === 0 && (
             <p className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">Khong co san pham nao.</p>
           )}
         </div>
