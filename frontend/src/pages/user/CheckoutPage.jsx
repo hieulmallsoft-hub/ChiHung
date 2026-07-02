@@ -15,6 +15,8 @@ const initialAddressForm = {
   country: "Vietnam",
 };
 
+const STANDARD_SHIPPING_FEE = 30000;
+
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const { cart, refreshCart, loading: cartLoading } = useCart();
@@ -30,8 +32,8 @@ export default function CheckoutPage() {
   const cartItems = cart?.items || [];
   const hasCartItems = cartItems.length > 0;
   const shippingOptions = [
-    { id: "STANDARD", label: "Tiêu chuẩn", description: "2-4 ngày làm việc", fee: Number(cart?.shippingFee || 0) },
-    { id: "EXPRESS", label: "Hỏa tốc", description: "Trong ngày tại nội thành", fee: Number(cart?.shippingFee || 0) + 25000 },
+    { id: "STANDARD", label: "Tiêu chuẩn", description: "2-4 ngày làm việc", fee: STANDARD_SHIPPING_FEE },
+    { id: "EXPRESS", label: "Hỏa tốc", description: "Trong ngày tại nội thành", fee: STANDARD_SHIPPING_FEE + 25000 },
   ];
   const selectedShipping = shippingOptions.find((item) => item.id === form.shippingMethod) || shippingOptions[0];
   const payableTotal = Math.max(0, Number(cart?.total || 0) + selectedShipping.fee - Number(cart?.shippingFee || 0));

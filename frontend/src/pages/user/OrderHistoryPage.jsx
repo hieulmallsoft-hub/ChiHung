@@ -178,7 +178,7 @@ export default function OrderHistoryPage() {
         </div>
         <div className="section-shell p-4">
           <p className="text-sm text-slate-500">Sản phẩm gần đây</p>
-          <p className="mt-1 text-sm">{(stats?.recentProducts || []).join(", ") || "Chưa có"}</p>
+          <p className="mt-1 text-sm font-semibold text-slate-900">{(stats?.recentProducts || []).join(", ") || "Chưa có"}</p>
         </div>
       </section>
 

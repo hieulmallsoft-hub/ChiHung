@@ -94,7 +94,7 @@ export default function Navbar() {
   };
 
   const navItemClass = ({ isActive }) =>
-    `flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold transition-all duration-300 ${
+    `flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold transition-all duration-300 2xl:px-4 ${
       isActive
         ? "bg-white text-slate-950 shadow-[0_4px_12px_rgba(255,255,255,0.15)]"
         : "text-slate-300 hover:bg-white/10 hover:text-white hover:scale-105"
@@ -202,20 +202,20 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/80 shadow-[0_10px_35px_rgba(2,6,23,0.3)] backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-6">
+      <div className="mx-auto flex max-w-screen-2xl items-center justify-between gap-2 px-3 py-3 sm:px-4 lg:gap-4 lg:px-6">
         {/* Logo thương hiệu */}
         <Link to="/" className="group flex shrink-0 items-center gap-3" onClick={closeMobile}>
           <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-sm font-black text-white shadow-[0_0_22px_rgba(244,63,94,0.4)] transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_25px_rgba(244,63,94,0.6)]">
             SS
           </div>
           <div className="hidden sm:block">
-            <p className="font-heading text-xl font-black leading-none tracking-tight text-white transition-colors duration-300 group-hover:text-rose-400">SportShop</p>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.24em] text-rose-400">ĐỒ THỂ THAO CAO CẤP</p>
+            <p className="font-heading text-lg font-black leading-none tracking-tight text-white transition-colors duration-300 group-hover:text-rose-400 2xl:text-xl">SportShop</p>
+            <p className="mt-1 hidden text-[10px] font-bold uppercase tracking-[0.24em] text-rose-400 2xl:block">ĐỒ THỂ THAO CAO CẤP</p>
           </div>
         </Link>
 
         {/* Liên kết điều hướng desktop */}
-        <nav className="hidden items-center gap-1.5 rounded-full border border-white/10 bg-white/5 p-1 lg:flex">
+        <nav className="hidden shrink-0 items-center gap-1 rounded-full border border-white/10 bg-white/5 p-1 2xl:flex">
           <NavLink to="/" className={navItemClass}>
             <Home className="h-4 w-4" />
             <span>Trang chủ</span>
@@ -243,12 +243,12 @@ export default function Navbar() {
         </nav>
 
         {/* Thanh tìm kiếm desktop */}
-        <div className="hidden min-w-[280px] max-w-md flex-1 md:block">
+        <div className="hidden min-w-0 max-w-sm flex-1 lg:block 2xl:min-w-64 2xl:max-w-md">
           {searchForm()}
         </div>
 
         {/* Nhóm thao tác bên phải */}
-        <div className="hidden shrink-0 items-center gap-3 md:flex">
+        <div className="hidden shrink-0 items-center gap-2 2xl:flex">
           {isAuthenticated && (
             <span
               className={`hidden items-center gap-1 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] xl:inline-flex ${
@@ -329,9 +329,24 @@ export default function Navbar() {
           )}
         </div>
 
+        <div className="ml-auto hidden shrink-0 items-center gap-2 md:flex 2xl:hidden">
+          <Link
+            to="/cart"
+            className="group relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white transition-all duration-300 hover:border-rose-500/40 hover:bg-white/[0.08]"
+            aria-label="Giỏ hàng"
+          >
+            <ShoppingCart className="h-4.5 w-4.5 text-slate-300 transition-colors group-hover:text-rose-400" />
+            {cartCount > 0 && (
+              <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-red-600 px-1.5 text-[10px] font-bold text-white shadow-[0_2px_8px_rgba(244,63,94,0.3)]">
+                {cartCount}
+              </span>
+            )}
+          </Link>
+        </div>
+
         {/* Nút mở menu mobile */}
         <button
-          className="ml-auto inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white transition hover:bg-white/[0.08] md:hidden"
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white transition hover:bg-white/[0.08] 2xl:hidden"
           onClick={() => setMobileOpen((prev) => !prev)}
           aria-label={mobileOpen ? "Đóng menu" : "Mở menu"}
         >
@@ -341,9 +356,9 @@ export default function Navbar() {
 
       {/* Menu mobile */}
       {mobileOpen && (
-        <div className="border-t border-white/10 bg-slate-950/95 px-4 pb-6 pt-4 md:hidden backdrop-blur-xl">
-          <div className="flex flex-col gap-3">
-            <div className="mb-2">{searchForm(true)}</div>
+        <div className="border-t border-white/10 bg-slate-950/95 px-4 pb-6 pt-4 2xl:hidden backdrop-blur-xl">
+          <div className="mx-auto flex max-w-2xl flex-col gap-3">
+            <div className="mb-2 lg:hidden">{searchForm(true)}</div>
 
             <NavLink to="/" className={navItemClass} onClick={closeMobile}>
               <Home className="h-4.5 w-4.5" />

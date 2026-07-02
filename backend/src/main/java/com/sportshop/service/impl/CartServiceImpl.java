@@ -25,7 +25,6 @@ import java.util.UUID;
 public class CartServiceImpl implements CartService {
 
     private static final BigDecimal DEFAULT_SHIPPING_FEE = BigDecimal.valueOf(30000);
-    private static final BigDecimal FREE_SHIPPING_THRESHOLD = BigDecimal.valueOf(1000000);
 
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
@@ -168,8 +167,7 @@ public class CartServiceImpl implements CartService {
                 .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal shippingFee = subtotal.compareTo(FREE_SHIPPING_THRESHOLD) >= 0
-                ? BigDecimal.ZERO : DEFAULT_SHIPPING_FEE;
+        BigDecimal shippingFee = items.isEmpty() ? BigDecimal.ZERO : DEFAULT_SHIPPING_FEE;
 
         BigDecimal discount = BigDecimal.ZERO;
         Coupon coupon = null;
