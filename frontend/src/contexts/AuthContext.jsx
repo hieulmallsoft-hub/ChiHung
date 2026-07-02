@@ -91,6 +91,14 @@ export function AuthProvider({ children }) {
     setIsAuthenticated(false);
   }, []);
 
+  const updateCurrentUser = useCallback((nextUser) => {
+    setUser((currentUser) => {
+      const normalizedUser = normalizeUser({ ...(currentUser || {}), ...(nextUser || {}) });
+      tokenStorage.setSession({ user: normalizedUser });
+      return normalizedUser;
+    });
+  }, []);
+
   const bootstrapAuth = useCallback(async () => {
     const accessToken = tokenStorage.getAccessToken();
     const refreshToken = tokenStorage.getRefreshToken();
@@ -184,8 +192,9 @@ export function AuthProvider({ children }) {
       hasRole,
       bootstrapAuth,
       clearSession,
+      updateCurrentUser,
     }),
-    [user, loading, isAuthenticated, login, register, logout, hasRole, bootstrapAuth, clearSession]
+    [user, loading, isAuthenticated, login, register, logout, hasRole, bootstrapAuth, clearSession, updateCurrentUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

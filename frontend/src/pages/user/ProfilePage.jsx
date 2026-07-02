@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { userApi } from "../../api/userApi";
+import { useAuth } from "../../hooks/useAuth";
 
 const initialAddressForm = {
   receiverName: "",
@@ -8,12 +9,15 @@ const initialAddressForm = {
   line1: "",
   city: "",
   country: "Vietnam",
+  defaultAddress: false,
 };
 
 export default function ProfilePage() {
+  const { updateCurrentUser } = useAuth();
   const [profile, setProfile] = useState(null);
   const [addresses, setAddresses] = useState([]);
   const [addressForm, setAddressForm] = useState(initialAddressForm);
+  const [editingAddressId, setEditingAddressId] = useState(null);
   const [savingAddress, setSavingAddress] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ currentPassword: "", newPassword: "" });
 
@@ -31,41 +35,89 @@ export default function ProfilePage() {
     loadData();
   }, []);
 
+  const sanitizePhone = (value) => value.replace(/\D+/g, "");
+
   const saveProfile = async () => {
     try {
-      await userApi.updateProfile(profile);
-      toast.success("Cập nhật ho so thanh cong");
+      const payload = {
+        fullName: profile.fullName || "",
+        email: profile.email || "",
+        phone: profile.phone || "",
+        avatarUrl: profile.avatarUrl || "",
+      };
+      const response = await userApi.updateProfile(payload);
+      setProfile(response.data.data);
+      updateCurrentUser(response.data.data);
+      toast.success("Cập nhật hồ sơ thành công");
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Cập nhật ho so that bai");
+      toast.error(error?.response?.data?.message || "Cập nhật hồ sơ thất bại");
     }
   };
 
-  const sanitizePhone = (value) => value.replace(/\D+/g, "");
+  const resetAddressForm = () => {
+    setEditingAddressId(null);
+    setAddressForm(initialAddressForm);
+  };
 
-  const addAddress = async (event) => {
+  const startEditAddress = (address) => {
+    setEditingAddressId(address.id);
+    setAddressForm({
+      receiverName: address.receiverName || "",
+      receiverPhone: address.receiverPhone || "",
+      line1: address.line1 || "",
+      city: address.city || "",
+      country: address.country || "Vietnam",
+      defaultAddress: Boolean(address.defaultAddress),
+    });
+  };
+
+  const saveAddress = async (event) => {
     event.preventDefault();
     try {
       setSavingAddress(true);
-      await userApi.addAddress({
+      const payload = {
         ...addressForm,
         receiverPhone: sanitizePhone(addressForm.receiverPhone),
-        defaultAddress: addresses.length === 0,
-      });
-      setAddressForm(initialAddressForm);
-      toast.success("Đã thêm địa chỉ");
-      loadData();
+        defaultAddress: editingAddressId ? addressForm.defaultAddress : addresses.length === 0 || addressForm.defaultAddress,
+      };
+
+      if (editingAddressId) {
+        await userApi.updateAddress(editingAddressId, payload);
+        toast.success("Đã cập nhật địa chỉ");
+      } else {
+        await userApi.addAddress(payload);
+        toast.success("Đã thêm địa chỉ");
+      }
+
+      resetAddressForm();
+      await loadData();
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Không thể thêm địa chỉ");
+      toast.error(error?.response?.data?.message || "Không thể lưu địa chỉ");
     } finally {
       setSavingAddress(false);
     }
   };
 
+  const setDefaultAddress = async (address) => {
+    try {
+      await userApi.updateAddress(address.id, { ...address, defaultAddress: true });
+      toast.success("Đã đặt địa chỉ mặc định");
+      await loadData();
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Không thể đặt địa chỉ mặc định");
+    }
+  };
+
   const deleteAddress = async (id) => {
+    if (!window.confirm("Bạn có chắc muốn xóa địa chỉ này?")) return;
+
     try {
       await userApi.deleteAddress(id);
       toast.success("Đã xóa địa chỉ");
-      loadData();
+      if (editingAddressId === id) {
+        resetAddressForm();
+      }
+      await loadData();
     } catch (error) {
       toast.error(error?.response?.data?.message || "Không thể xóa địa chỉ");
     }
@@ -86,13 +138,13 @@ export default function ProfilePage() {
   return (
     <div className="grid gap-5 lg:grid-cols-2">
       <section className="card space-y-3 p-5">
-        <h1 className="font-heading text-2xl font-bold text-slate-900">Ho so ca nhan</h1>
+        <h1 className="font-heading text-2xl font-bold text-slate-900">Hồ sơ cá nhân</h1>
         <div className="rounded-xl border border-cyan-100 bg-cyan-50 p-3 text-sm text-slate-600">
           Cập nhật thông tin để nhận hỗ trợ và giao hàng nhanh hơn.
         </div>
         <input value={profile.fullName || ""} onChange={(e) => setProfile((p) => ({ ...p, fullName: e.target.value }))} />
         <input value={profile.email || ""} readOnly className="cursor-not-allowed bg-slate-100 text-slate-500" />
-        <input value={profile.phone || ""} onChange={(e) => setProfile((p) => ({ ...p, phone: e.target.value }))} />
+        <input value={profile.phone || ""} onChange={(e) => setProfile((p) => ({ ...p, phone: sanitizePhone(e.target.value) }))} />
         <input value={profile.avatarUrl || ""} placeholder="Avatar URL" onChange={(e) => setProfile((p) => ({ ...p, avatarUrl: e.target.value }))} />
         <button className="btn-primary" onClick={saveProfile}>Lưu thay đổi</button>
       </section>
@@ -101,8 +153,13 @@ export default function ProfilePage() {
         <div className="card space-y-3 p-5">
           <div className="flex items-center justify-between">
             <h2 className="font-heading text-xl font-bold text-slate-900">Địa chỉ của tôi</h2>
+            {editingAddressId && (
+              <button type="button" className="text-xs font-semibold text-primary-700" onClick={resetAddressForm}>
+                Hủy sửa
+              </button>
+            )}
           </div>
-          <form onSubmit={addAddress} className="grid gap-2 rounded-xl border border-cyan-100 bg-cyan-50 p-3 md:grid-cols-2">
+          <form onSubmit={saveAddress} className="grid gap-2 rounded-xl border border-cyan-100 bg-cyan-50 p-3 md:grid-cols-2">
             <input
               required
               placeholder="Tên người nhận"
@@ -136,8 +193,16 @@ export default function ProfilePage() {
               value={addressForm.country}
               onChange={(e) => setAddressForm((p) => ({ ...p, country: e.target.value }))}
             />
+            <label className="md:col-span-2 inline-flex items-center gap-2 text-sm font-semibold text-slate-700">
+              <input
+                type="checkbox"
+                checked={addressForm.defaultAddress}
+                onChange={(e) => setAddressForm((p) => ({ ...p, defaultAddress: e.target.checked }))}
+              />
+              Đặt làm địa chỉ mặc định
+            </label>
             <button type="submit" className="btn-secondary md:col-span-2" disabled={savingAddress}>
-              {savingAddress ? "Đang lưu..." : "Thêm địa chỉ"}
+              {savingAddress ? "Đang lưu..." : editingAddressId ? "Cập nhật địa chỉ" : "Thêm địa chỉ"}
             </button>
           </form>
           <div className="space-y-2">
@@ -147,11 +212,21 @@ export default function ProfilePage() {
                   <div>
                     <p className="font-semibold">{address.receiverName} - {address.receiverPhone}</p>
                     <p className="text-slate-500">{address.line1}, {address.city}</p>
-                    {address.defaultAddress && <span className="badge mt-2">Mac dinh</span>}
+                    {address.defaultAddress && <span className="badge mt-2">Mặc định</span>}
                   </div>
-                  <button className="text-xs font-semibold text-primary-700 hover:text-primary-600" onClick={() => deleteAddress(address.id)}>
-                    Xóa
-                  </button>
+                  <div className="flex shrink-0 items-center gap-3">
+                    {!address.defaultAddress && (
+                      <button className="text-xs font-semibold text-primary-700 hover:text-primary-600" onClick={() => setDefaultAddress(address)}>
+                        Mặc định
+                      </button>
+                    )}
+                    <button className="text-xs font-semibold text-primary-700 hover:text-primary-600" onClick={() => startEditAddress(address)}>
+                      Sửa
+                    </button>
+                    <button className="text-xs font-semibold text-red-600 hover:text-red-500" onClick={() => deleteAddress(address.id)}>
+                      Xóa
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
