@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { orderApi } from "../../api/orderApi";
+import ErrorState from "../../components/common/ErrorState";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { createChatStompClient } from "../../utils/chatSocket";
 
 const orderSteps = [
@@ -41,12 +43,23 @@ export default function OrderDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [detailError, setDetailError] = useState("");
   const stompRef = useRef(null);
 
   useEffect(() => {
     const load = async () => {
-      const response = await orderApi.getMyOrderDetail(id);
-      setOrder(response.data.data);
+      try {
+        setLoading(true);
+        setDetailError("");
+        const response = await orderApi.getMyOrderDetail(id);
+        setOrder(response.data.data);
+      } catch (error) {
+        setOrder(null);
+        setDetailError(error?.response?.data?.message || "Khong tai duoc chi tiet don hang");
+      } finally {
+        setLoading(false);
+      }
     };
     load();
   }, [id]);
@@ -89,7 +102,8 @@ export default function OrderDetailPage() {
     }
   };
 
-  if (!order) return null;
+  if (loading) return <LoadingSpinner />;
+  if (!order) return <ErrorState message={detailError || "Khong tim thay don hang"} />;
 
   const currentStep = orderSteps.findIndex((step) => step.id === order.status);
   const isCancelled = order.status === "CANCELLED";

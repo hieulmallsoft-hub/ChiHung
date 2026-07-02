@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import { catalogApi } from "../../api/catalogApi";
 import { cartApi } from "../../api/cartApi";
 import { reviewApi } from "../../api/reviewApi";
+import ErrorState from "../../components/common/ErrorState";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import ProductCard from "../../components/common/ProductCard";
 import SectionTitle from "../../components/common/SectionTitle";
@@ -14,13 +15,14 @@ import { buildProductPlaceholder, resolveMediaUrl } from "../../utils/media";
 export default function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
-  const { refreshCart } = useCart();
+  const { clearSession, isAuthenticated } = useAuth();
+  const { cart, setCart } = useCart();
 
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [detailError, setDetailError] = useState("");
   const [qty, setQty] = useState(1);
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: "" });
   const [activeImage, setActiveImage] = useState(null);
@@ -42,16 +44,23 @@ export default function ProductDetailPage() {
 
   const loadDetail = async () => {
     setLoading(true);
+    setDetailError("");
     try {
-      const [detailRes, relatedRes, reviewRes] = await Promise.all([
-        catalogApi.getProductDetail(id),
+      const detailRes = await catalogApi.getProductDetail(id);
+      setProduct(detailRes.data.data);
+
+      const [relatedRes, reviewRes] = await Promise.allSettled([
         catalogApi.getRelatedProducts(id),
         reviewApi.getProductReviews(id, { page: 0, size: 20 }),
       ]);
 
-      setProduct(detailRes.data.data);
-      setRelatedProducts(relatedRes.data.data || []);
-      setReviews(reviewRes.data.data.content || []);
+      setRelatedProducts(relatedRes.status === "fulfilled" ? relatedRes.value.data.data || [] : []);
+      setReviews(reviewRes.status === "fulfilled" ? reviewRes.value.data.data?.content || [] : []);
+    } catch (error) {
+      setProduct(null);
+      setRelatedProducts([]);
+      setReviews([]);
+      setDetailError(error?.response?.data?.message || "Khong tai duoc chi tiet san pham");
     } finally {
       setLoading(false);
     }
@@ -61,20 +70,53 @@ export default function ProductDetailPage() {
     loadDetail();
   }, [id]);
 
+  const existingCartQuantity = useMemo(() => {
+    if (!product?.id || !Array.isArray(cart?.items)) return 0;
+    const item = cart.items.find((cartItem) => cartItem.productId === product.id);
+    return Number(item?.quantity || 0);
+  }, [cart?.items, product?.id]);
+
+  const availableToAdd = useMemo(() => {
+    if (!product) return 0;
+    return Math.max(0, Number(product.stockQuantity || 0) - existingCartQuantity);
+  }, [existingCartQuantity, product]);
+
+  useEffect(() => {
+    if (!product) return;
+    setQty((current) => Math.max(1, Math.min(Math.max(availableToAdd, 1), Number(current) || 1)));
+  }, [availableToAdd, product]);
+
+  const getErrorMessage = (error, fallback) => {
+    const message = error?.response?.data?.message || error?.message;
+    return message || fallback;
+  };
+
   const addToCart = async () => {
     if (!isAuthenticated) {
-      toast.error("Vui lòng đăng nhập để mua hàng");
+      toast.error("Vui long dang nhap de them san pham vao gio");
+      navigate("/login", { state: { from: { pathname: `/products/${id}` } } });
       return false;
     }
 
-    const safeQuantity = Math.max(1, Math.min(Number(product?.stockQuantity || 1), Number(qty) || 1));
+    if (availableToAdd <= 0) {
+      toast.error("San pham nay da dat so luong toi da trong gio hang");
+      return false;
+    }
+
+    const safeQuantity = Math.max(1, Math.min(availableToAdd, Number(qty) || 1));
     try {
-      await cartApi.addItem({ productId: product.id, quantity: safeQuantity });
-      await refreshCart();
+      const response = await cartApi.addItem({ productId: product.id, quantity: safeQuantity });
+      setCart(response.data.data);
       toast.success("Đã thêm vào giỏ hàng");
       return true;
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Không thêm được vào giỏ hàng");
+      if (error?.response?.status === 401 || error?.response?.status === 403) {
+        clearSession();
+        toast.error("Phien dang nhap da het han, vui long dang nhap lai");
+        navigate("/login", { state: { from: { pathname: `/products/${id}` } } });
+        return false;
+      }
+      toast.error(getErrorMessage(error, "Khong them duoc vao gio hang"));
       return false;
     }
   };
@@ -113,7 +155,7 @@ export default function ProductDetailPage() {
       setReviewForm({ rating: 5, comment: "" });
       loadDetail();
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Không thể gửi đánh giá");
+      toast.error(getErrorMessage(error, "Khong the gui danh gia"));
     }
   };
 
@@ -132,7 +174,8 @@ export default function ProductDetailPage() {
     setActiveImage(null);
   }, [product?.id]);
 
-  if (loading || !product) return <LoadingSpinner />;
+  if (loading) return <LoadingSpinner />;
+  if (!product) return <ErrorState message={detailError || "Khong tim thay san pham"} />;
 
   const price = Number(product.salePrice || product.price);
   const originalPrice = Number(product.price || price);
@@ -140,12 +183,13 @@ export default function ProductDetailPage() {
   const discountPercent = hasSale
     ? Math.max(1, Math.round(((Number(product.price) - Number(product.salePrice)) / Number(product.price)) * 100))
     : 0;
-  const safeQty = Number.isNaN(qty) || qty < 1 ? 1 : qty;
-  const maxQty = Math.max(1, product.stockQuantity || 1);
+  const maxQty = Math.max(1, availableToAdd || 1);
+  const safeQty = Number.isNaN(qty) || qty < 1 ? 1 : Math.min(qty, maxQty);
   const productImage = activeImage || mediaItems[0] || buildProductPlaceholder(product.name);
   const isWishlisted = wishlist.some((item) => item.id === product.id);
   const isCompared = compareList.some((item) => item.id === product.id);
   const outOfStock = Number(product.stockQuantity || 0) <= 0;
+  const cannotAddMore = outOfStock || availableToAdd <= 0;
 
   const adjustQty = (delta) => {
     setQty((current) => {
@@ -258,7 +302,7 @@ export default function ProductDetailPage() {
               <p className="text-xs text-slate-500">Tối đa {maxQty}</p>
             </div>
             <div className="flex items-center gap-3">
-              <button onClick={() => adjustQty(-1)} className="btn-secondary px-3">
+              <button onClick={() => adjustQty(-1)} className="btn-secondary px-3" disabled={cannotAddMore}>
                 -
               </button>
               <input
@@ -268,16 +312,22 @@ export default function ProductDetailPage() {
                 value={safeQty}
                 onChange={(event) => setQty(Math.max(1, Math.min(maxQty, Number(event.target.value))))}
                 className="w-24 text-center"
+                disabled={cannotAddMore}
               />
-              <button onClick={() => adjustQty(1)} className="btn-secondary px-3">
+              <button onClick={() => adjustQty(1)} className="btn-secondary px-3" disabled={cannotAddMore}>
                 +
               </button>
             </div>
+            {existingCartQuantity > 0 && (
+              <p className="text-xs text-slate-500">
+                Da co {existingCartQuantity} san pham trong gio, con co the them {availableToAdd}.
+              </p>
+            )}
             <div className="flex flex-wrap gap-3">
-              <button onClick={addToCart} className="btn-secondary flex-1 border-primary-200 bg-rose-50 text-primary-700" disabled={outOfStock}>
-                {outOfStock ? "Hết hàng" : "Thêm vào giỏ"}
+              <button onClick={addToCart} className="btn-secondary flex-1 border-primary-200 bg-rose-50 text-primary-700" disabled={cannotAddMore}>
+                {outOfStock ? "Hết hàng" : availableToAdd <= 0 ? "Đã đủ trong giỏ" : "Thêm vào giỏ"}
               </button>
-              <button onClick={buyNow} className="btn-primary flex-1" disabled={outOfStock}>
+              <button onClick={buyNow} className="btn-primary flex-1" disabled={cannotAddMore}>
                 Mua ngay
               </button>
             </div>
@@ -378,3 +428,4 @@ export default function ProductDetailPage() {
     </div>
   );
 }
+

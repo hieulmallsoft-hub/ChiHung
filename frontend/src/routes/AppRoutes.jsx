@@ -17,6 +17,7 @@ import ForgotPasswordPage from "../pages/user/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/user/ResetPasswordPage";
 import ProfilePage from "../pages/user/ProfilePage";
 import ChatSupportPage from "../pages/user/ChatSupportPage";
+import WishlistPage from "../pages/user/WishlistPage";
 
 import AdminLoginPage from "../pages/admin/AdminLoginPage";
 import AdminDashboardPage from "../pages/admin/AdminDashboardPage";
@@ -64,6 +65,14 @@ export default function AppRoutes() {
         element={
           <MainLayout>
             <CartPage />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/wishlist"
+        element={
+          <MainLayout>
+            <WishlistPage />
           </MainLayout>
         }
       />

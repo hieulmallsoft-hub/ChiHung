@@ -72,7 +72,9 @@ export default function CartPage() {
               <button className="btn-secondary" onClick={() => updateQty(item.id, item.quantity - 1)}>
                 -
               </button>
-              <span className="w-7 text-center">{item.quantity}</span>
+              <span className="inline-flex h-10 min-w-12 items-center justify-center rounded-xl border border-cyan-100 bg-white px-3 text-sm font-bold text-slate-900">
+                {item.quantity}
+              </span>
               <button className="btn-secondary" onClick={() => updateQty(item.id, item.quantity + 1)}>
                 +
               </button>

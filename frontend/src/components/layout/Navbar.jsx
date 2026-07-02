@@ -12,6 +12,7 @@ import {
   Menu,
   X,
   ShieldCheck,
+  Heart,
 } from "lucide-react";
 import { catalogApi } from "../../api/catalogApi";
 import { useAuth } from "../../hooks/useAuth";
@@ -223,6 +224,10 @@ export default function Navbar() {
             <ShoppingBag className="h-4 w-4" />
             <span>Sản phẩm</span>
           </NavLink>
+          <NavLink to="/wishlist" className={navItemClass}>
+            <Heart className="h-4 w-4" />
+            <span>Yeu thich</span>
+          </NavLink>
           {isAuthenticated && !isAdmin && (
             <>
               <NavLink to="/orders" className={navItemClass}>
@@ -348,6 +353,10 @@ export default function Navbar() {
               <ShoppingBag className="h-4.5 w-4.5" />
               <span>Sản phẩm</span>
             </NavLink>
+            <NavLink to="/wishlist" className={navItemClass} onClick={closeMobile}>
+              <Heart className="h-4.5 w-4.5" />
+              <span>Yeu thich</span>
+            </NavLink>
             {isAuthenticated && !isAdmin && (
               <>
                 <NavLink to="/orders" className={navItemClass} onClick={closeMobile}>
@@ -454,4 +463,5 @@ export default function Navbar() {
     </header>
   );
 }
+
 
