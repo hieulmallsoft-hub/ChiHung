@@ -9,6 +9,13 @@ const axiosClient = axios.create({
   timeout: 20000,
 });
 
+function redirectToLogin() {
+  const loginPath = window.location.pathname.startsWith("/admin") ? "/admin-login" : "/login";
+  if (window.location.pathname !== loginPath) {
+    window.location.href = loginPath;
+  }
+}
+
 axiosClient.interceptors.request.use((config) => {
   const token = tokenStorage.getAccessToken();
   if (token) {
@@ -23,6 +30,7 @@ axiosClient.interceptors.response.use(
     const originalRequest = error.config;
 
     if (
+      originalRequest &&
       error?.response?.status === 401 &&
       !originalRequest?._retry &&
       !originalRequest?.url?.includes("/api/auth/refresh")
@@ -32,6 +40,7 @@ axiosClient.interceptors.response.use(
 
       if (!refreshToken) {
         tokenStorage.clearSession();
+        redirectToLogin();
         return Promise.reject(error);
       }
 
@@ -41,19 +50,22 @@ axiosClient.interceptors.response.use(
         });
 
         const payload = refreshResponse.data?.data;
+        if (!payload?.accessToken) {
+          throw new Error("Invalid refresh response");
+        }
+
         tokenStorage.setSession({
           accessToken: payload.accessToken,
           refreshToken: payload.refreshToken,
           user: payload.user || tokenStorage.getUser(),
         });
 
+        originalRequest.headers = originalRequest.headers || {};
         originalRequest.headers.Authorization = `Bearer ${payload.accessToken}`;
         return axiosClient(originalRequest);
       } catch (refreshError) {
         tokenStorage.clearSession();
-        if (window.location.pathname !== "/login") {
-          window.location.href = "/login";
-        }
+        redirectToLogin();
         return Promise.reject(refreshError);
       }
     }

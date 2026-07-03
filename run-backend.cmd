@@ -21,7 +21,7 @@ if not exist "%LOCAL_M2%" mkdir "%LOCAL_M2%"
 
 if "%DB_URL%"=="" set DB_URL=jdbc:postgresql://localhost:5432/sportshop_graduation
 if "%DB_USERNAME%"=="" set DB_USERNAME=postgres
-if "%DB_PASSWORD%"=="" set DB_PASSWORD=postgres
+if "%DB_PASSWORD%"=="" set DB_PASSWORD=123456
 if "%SPRING_FLYWAY_ENABLED%"=="" set SPRING_FLYWAY_ENABLED=false
 if "%SPRING_JPA_DDL_AUTO%"=="" set SPRING_JPA_DDL_AUTO=update
 

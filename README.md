@@ -91,14 +91,14 @@ Tai thu muc root project:
 docker compose up -d
 ```
 
-File `docker-compose.yml` expose PostgreSQL o port `5433`, database `sportshop_db`, user `postgres`, password `postgres`.
+File `docker-compose.yml` expose PostgreSQL o port `5433`, database `sportshop_db`, user `postgres`, password `123456`.
 
 Khi chay backend voi Docker DB, set:
 
 ```powershell
 $env:DB_URL="jdbc:postgresql://localhost:5433/sportshop_db"
 $env:DB_USERNAME="postgres"
-$env:DB_PASSWORD="postgres"
+$env:DB_PASSWORD="123456"
 ```
 
 ## Chay backend
@@ -169,7 +169,19 @@ Sau do restart frontend.
 
 ## Tai khoan demo
 
-Du lieu mau duoc seed tu dong khi database chua co user.
+Backend tu tao role va tai khoan admin mac dinh khi database chua co admin. Du lieu demo day du nhu user mau, danh muc, thuong hieu, san pham va coupon nam trong `backend/sql/sample_data.sql`.
+
+Neu dung PostgreSQL local:
+
+```powershell
+psql -h localhost -p 5432 -U postgres -d sportshop_graduation -f backend/sql/sample_data.sql
+```
+
+Neu dung PostgreSQL Docker trong project:
+
+```powershell
+psql -h localhost -p 5433 -U postgres -d sportshop_db -f backend/sql/sample_data.sql
+```
 
 ```text
 Admin: admin@sportshop.vn / admin123

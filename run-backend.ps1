@@ -18,7 +18,7 @@ if (Test-Path $jdkRoot) {
 
 if (-not $env:DB_URL) { $env:DB_URL = 'jdbc:postgresql://localhost:5432/sportshop_graduation' }
 if (-not $env:DB_USERNAME) { $env:DB_USERNAME = 'postgres' }
-if (-not $env:DB_PASSWORD) { $env:DB_PASSWORD = 'postgres' }
+if (-not $env:DB_PASSWORD) { $env:DB_PASSWORD = '123456' }
 if (-not $env:SPRING_FLYWAY_ENABLED) { $env:SPRING_FLYWAY_ENABLED = 'false' }
 if (-not $env:SPRING_JPA_DDL_AUTO) { $env:SPRING_JPA_DDL_AUTO = 'update' }
 Write-Host "[backend] Using DB_URL=$($env:DB_URL)"
